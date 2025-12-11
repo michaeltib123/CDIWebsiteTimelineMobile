@@ -615,9 +615,9 @@
   transition: clip-path var(--connector-duration) var(--timeline-ease) calc(var(--dot-delay) + var(--connector-delay));
   background-repeat: no-repeat;
   background-size:
-    100% var(--connector-stroke-width),
+    50% var(--connector-stroke-width),
     var(--connector-stroke-width) var(--connector-vertical),
-    100% var(--connector-stroke-width);
+    50% var(--connector-stroke-width);
   background-image:
     repeating-linear-gradient(
       to right,
@@ -642,8 +642,8 @@
     );
   background-position:
     top left,
-    top right,
-    bottom left;
+    top center,
+    bottom right;
 }
 
 .cdi-timeline.is-animated .cdi-timeline-item::after {
@@ -665,8 +665,8 @@
   --connector-start-clip-end: 0%;
   background-position:
     top right,
-    top left,
-    bottom right;
+    top center,
+    bottom left;
 }
 
 .cdi-timeline-item:nth-child(even)::after {
@@ -1337,28 +1337,34 @@
 
         function preventOverlap() {
           const timelineRect = timeline.getBoundingClientRect();
-          let previousBottom = -Infinity;
+          const previousBottomBySide = {
+            left: -Infinity,
+            right: -Infinity,
+          };
 
           items.forEach((item) => {
             item.style.setProperty('--card-shift', '0px');
             item.style.setProperty('--connector-vertical', '0px');
           });
 
-          items.forEach((item) => {
+          items.forEach((item, index) => {
             const card = item.querySelector('.cdi-timeline-card');
             if (!card) return;
+
+            const isLeftSide = index % 2 === 0;
+            const sideKey = isLeftSide ? 'left' : 'right';
 
             const cardRect = card.getBoundingClientRect();
             const cardTop = cardRect.top - timelineRect.top;
             const cardBottom = cardRect.bottom - timelineRect.top;
 
-            const targetTop = previousBottom + state.CARD_MIN_GAP;
+            const targetTop = previousBottomBySide[sideKey] + state.CARD_MIN_GAP;
             const shift = Math.max(0, targetTop - cardTop);
 
             item.style.setProperty('--card-shift', `${shift}px`);
             item.style.setProperty('--connector-vertical', `${shift}px`);
 
-            previousBottom = cardBottom + shift;
+            previousBottomBySide[sideKey] = cardBottom + shift;
           });
         }
 
