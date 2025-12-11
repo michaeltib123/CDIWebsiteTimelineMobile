@@ -1,0 +1,1113 @@
+<style>
+/* ========================= HOW TO EDIT THIS TIMELINE ========================= */
+/* This section explains how to safely modify the timeline.                      */
+/* The code below uses:                                                          */
+/* - HTML → the structure/content (each event is one "timeline item").           */
+/* - CSS → the styling, layout, and animations (colors, sizes, spacing, motion). */
+/* - JavaScript → the behavior (auto-sorting by year, spacing, progress, labels).*/
+/*                                                                              */
+/* If you are not comfortable with code, focus on:                               */
+/* - Editing the HTML event blocks to change content.                            */
+/* - Editing the CSS variables on .cdi-timeline-wrapper to change design.        */
+/* You usually do NOT need to touch the JavaScript.                              */
+/*                                                                              */
+/* ------------------------- 1. DESIGN SETTINGS (CSS) ------------------------- */
+/* All design variables live in ONE place: the block that starts with:           */
+/*   .cdi-timeline-wrapper {                                                     */
+/* and contains many lines such as:                                              */
+/*   --spine-width: 4px;                                                         */
+/* You can safely tweak those values without editing the rest of the CSS.        */
+/*                                                                              */
+/* === GEOMETRY / LAYOUT VARIABLES ============================================ */
+/* The following variables control sizes, spacing, and positions.                */
+/*                                                                              */
+/* --spine-width                → Thickness of the central vertical spine.       */
+/* --spine-length               → Calculated height of the “past” spine segment  */
+/*                                (set automatically via JavaScript; usually do  */
+/*                                NOT change this manually).                     */
+/* --future-length              → Length of the projected “future” dashed spine  */
+/*                                segment at the bottom.                         */
+/* --future-gap                 → Vertical gap between the end of the past spine */
+/*                                and the start of the future dashed segment.    */
+/* --line-progress              → Current height of the blue progress fill in    */
+/*                                the past spine (set via JavaScript).           */
+/* --future-progress            → Current height of the blue fill in the dashed  */
+/*                                future segment (set via JavaScript).           */
+/* --timeline-vertical-padding  → Top padding inside the timeline so dots/cards  */
+/*                                do not sit flush at the very top.              */
+/* --item-spacing               → Base vertical spacing between timeline items   */
+/*                                (additional spacing is added via JavaScript    */
+/*                                based on year differences).                    */
+/* --card-offset                → Horizontal distance from the spine to cards on */
+/*                                desktop (how far left/right cards sit).        */
+/* --connector-length           → Horizontal length of the dashed line from dot  */
+/*                                to card.                                       */
+/* --connector-stroke-width     → Thickness of the dashed connector line.        */
+/* --dot-offset                 → Vertical offset of the dot (and connector)     */
+/*                                relative to the item’s top; tunes alignment.   */
+/* --dot-diameter               → Size of the event dot itself.                  */
+/* --dot-border-width           → Thickness of the white border around the dot.  */
+/* --dot-ring                   → Thickness of the outer “glow”/ring around the  */
+/*                                dot (via box-shadow).                          */
+/* --card-max-width             → Maximum width of each event card.              */
+/* --card-padding               → Inner padding inside cards (top/right/bottom/  */
+/*                                left).                                         */
+/* --card-radius                → Card border radius (corner roundness).         */
+/* --progress-radius            → Rounding radius for the blue progress spine.   */
+/* --decade-label-offset        → Horizontal offset for decade labels relative   */
+/*                                to the spine on desktop.                       */
+/* --decade-radius              → Corner radius for the decade “pill” labels.    */
+/* --year-tick-width            → Horizontal width of each small year tick mark. */
+/* --year-tick-height           → Vertical thickness of each year tick mark.     */
+/* --mobile-spine-offset        → Spine’s left offset on small screens.          */
+/* --mobile-decade-offset       → Horizontal position of decade labels on small  */
+/*                                screens.                                       */
+/* --mobile-item-padding        → Left padding applied to items on mobile so     */
+/*                                cards clear the spine/dot area.                */
+/*                                                                              */
+/* NOTE: Vertical spacing between years is also influenced by the JavaScript     */
+/*       constant YEAR_PIXEL_STEP (larger value = more distance between years).  */
+/*                                                                              */
+/* === COLOR VARIABLES ======================================================== */
+/* These control the color scheme of the timeline.                               */
+/*                                                                              */
+/* --spine-color                → Neutral/base color for the spine and ticks.    */
+/* --progress-color             → Highlight color for the active blue progress   */
+/*                                fill and dot ring.                             */
+/* --connector-color            → Color of the dashed connector lines.           */
+/* --dot-color                  → Main fill color of the dot.                    */
+/* --dot-border-color           → Border color around the dot (usually white).   */
+/* --card-background            → Background color of event cards.               */
+/* --card-shadow                → Default drop shadow of cards.                  */
+/* --card-shadow-hover          → Shadow applied when hovering over cards        */
+/*                                (desktop only).                                */
+/* --year-color                 → Text color of the year inside each card.       */
+/* --body-text-color            → Text color for the card description/body.      */
+/* --decade-text-color          → Text color for decade labels.                  */
+/* --decade-background          → Background color for decade label pills.       */
+/* --tick-color                 → Color of the small year tick marks on the      */
+/*                                spine.                                         */
+/* --decade-shadow              → Shadow effect behind decade labels.            */
+/* --subheading-color           → Color of the subtitle text above the timeline. */
+/*                                                                              */
+/* === ANIMATION TIMING & EASING VARIABLES ==================================== */
+/* These control how and when elements animate (dot, connector, card, progress). */
+/*                                                                              */
+/* --timeline-ease              → Easing function used for most transitions      */
+/*                                (e.g., ease, linear, ease-in-out).             */
+/* --dot-delay                  → Delay before the dot starts its fade/scale-in  */
+/*                                animation after an item becomes visible.       */
+/* --dot-appear-duration        → Duration of the dot’s fade/scale animation.    */
+/* --connector-duration         → Duration of the dashed connector reveal        */
+/*                                animation (how long it takes to be fully       */
+/*                                “unmasked” from dot to card).                  */
+/* --connector-delay            → Delay before the connector reveal begins (this */
+/*                                is added on top of dot timing).                */
+/* --card-delay                 → Additional delay before the event card fade-in */
+/*                                starts (added to connector/dot timing).        */
+/* --card-fade-duration         → Duration of the card opacity fade-in.          */
+/* --progress-reveal-duration   → Duration for the blue fill in the future       */
+/*                                dashed segment to update.                       */
+/* --progress-height-duration   → Duration for the blue height of the past       */
+/*                                progress spine to adjust as you scroll.        */
+/*                                                                              */
+/* Small changes (±0.05s–0.10s) to these timing values are usually best. Large   */
+/* negative delays can cause animations to appear “instant” (already finished).  */
+/*                                                                              */
+/* --------------------- 2. ADDING OR REMOVING EVENTS (HTML) ------------------ */
+/* Each timeline event is a <div class="cdi-timeline-item"> block containing a   */
+/* card. The basic structure is:                                                 */
+/*                                                                              */
+/*   <div class="cdi-timeline-item">                                             */
+/*     <div class="cdi-timeline-card">                                           */
+/*       <div class="cdi-timeline-year">1980</div>                               */
+/*       <div class="cdi-timeline-body">Event description...</div>               */
+/*     </div>                                                                    */
+/*   </div>                                                                      */
+/*                                                                              */
+/* TO ADD A NEW EVENT:                                                           */
+/* - Copy an existing .cdi-timeline-item block.                                  */
+/* - Paste it anywhere inside the main <div class="cdi-timeline"> ... </div>.    */
+/* - Change the year inside .cdi-timeline-year (e.g., 2028 or "1964 / 1965").    */
+/* - Change the text inside .cdi-timeline-body to describe the event.            */
+/*                                                                              */
+/* The JavaScript will automatically:                                            */
+/* - Read the year(s) from your text.                                            */
+/* - Sort all events into chronological order.                                   */
+/* - Space events vertically based on year differences.                          */
+/* - Recalculate spine/future lengths and progress behavior.                     */
+/*                                                                              */
+/* You do NOT need to manually re-order or re-space items by year.               */
+/*                                                                              */
+/* TO REMOVE AN EVENT:                                                           */
+/* - Delete the entire <div class="cdi-timeline-item"> ... </div> for that event.*/
+/* The layout will automatically adjust on page load.                            */
+/*                                                                              */
+/* MULTI-YEAR / RANGES (e.g., "1964 / 1965"):                                    */
+/* - The script finds all four-digit years in the year label and averages them.  */
+/*   Example: "1964 / 1965" is treated as halfway between 1964 and 1965.         */
+/* - This lets you describe ranges without breaking the layout.                  */
+/*                                                                              */
+/* ------------------------- 3. WHAT THE JS IS DOING -------------------------- */
+/* You will see a <script> block near the bottom. It:                            */
+/* - Collects all .cdi-timeline-item elements and reads their years.             */
+/* - Sorts them by year (and original order as a tiebreaker).                    */
+/* - Uses YEAR_PIXEL_STEP (a constant in the script) to convert year differences */
+/*   into vertical pixel distances.                                              */
+/* - Calculates the total needed spine length and future segment length.         */
+/* - Sets CSS variables like --spine-length, --future-length, --future-gap,      */
+/*   --line-progress, and --future-progress.                                     */
+/* - Generates decade labels and year tick marks along the spine.                */
+/* - Uses IntersectionObserver to detect when items enter the viewport.          */
+/* - Runs the reveal sequence: dot pops in → connector reveals → card fades in.  */
+/*                                                                              */
+/* If you’re not comfortable with JavaScript, it’s best to leave this part       */
+/* unchanged and only edit HTML items + CSS variables.                           */
+/*                                                                              */
+/* ---------------------------- 4. MOBILE BEHAVIOR ---------------------------- */
+/* Mobile behavior is controlled entirely by CSS @media rules (max-width: 768px).*/
+/* The JavaScript does NOT have a separate “mobile mode”; it runs the same.      */
+/* On small screens, the @media block:                                           */
+/* - Moves the spine toward the left using --mobile-spine-offset.                */
+/* - Adjusts decade labels using --mobile-decade-offset.                         */
+/* - Stacks all items in a single column and indents cards using                 */
+/*   --mobile-item-padding.                                                      */
+/* - Hides the dashed connectors for a cleaner mobile layout.                    */
+/*                                                                              */
+/* To tweak mobile appearance, modify those mobile variables or the @media block */
+/* rather than changing the JavaScript.                                          */
+/*                                                                              */
+/* ---------------------------- 5. SAFE EDITING TIPS -------------------------- */
+/* - To change CONTENT → edit/add/remove .cdi-timeline-item blocks in the HTML.  */
+/* - To change LOOK/FEEL → adjust variables in the .cdi-timeline-wrapper config. */
+/* - Avoid renaming CSS classes (like .cdi-timeline-item, .cdi-timeline-card,    */
+/*   .cdi-timeline-year) because both CSS and JS depend on those names.          */
+/* - After edits, preview the timeline on desktop and mobile to verify layout    */
+/*   and animations still look correct.                                          */
+/* ============================================================================ */
+</style>
+
+
+
+
+
+
+
+
+<style>
+/* ===== CDI Milestones Timeline ===== */
+.cdi-timeline-wrapper {
+  max-width: 1100px;
+  margin: 0 auto;
+  font-family: inherit;
+}
+
+.cdi-timeline-heading {
+  text-align: left;
+  margin-bottom: 0.5rem;
+  font-size: 2.2rem;
+  font-weight: 700;
+}
+
+.cdi-timeline-subheading {
+  margin-bottom: 2rem;
+  font-size: 1.1rem;
+  color: var(--subheading-color);
+}
+
+/* ===== Timeline design configuration ===== */
+.cdi-timeline-wrapper {
+  /* Geometry/Layout */
+  --spine-width: 4px;
+  --spine-length: 0px;
+  --future-length: 120px;
+  --future-gap: 10px;
+  --line-progress: 0px;
+  --future-progress: 0px;
+  --timeline-vertical-padding: 0.75rem;
+  --item-spacing: 1.6rem;
+  --card-offset: 5rem;
+  --connector-length: 80px;
+  --connector-stroke-width: 2px;
+  --dot-offset: 0.75rem;
+  --dot-diameter: 8px;
+  --dot-border-width: 3px;
+  --dot-ring: 3px;
+  --card-max-width: 430px;
+  --card-padding: 0.9rem 1.1rem;
+  --card-radius: 6px;
+  --progress-radius: 3px;
+  --decade-label-offset: 16px;
+  --decade-radius: 10px;
+  --year-tick-width: 10px;
+  --year-tick-height: 1px;
+  --mobile-spine-offset: 10px;
+  --mobile-decade-offset: 26px;
+  --mobile-item-padding: 2.5rem;
+
+  /* Colors */
+  --spine-color: #d9e5f0;
+  --progress-color: #0065a4;
+  --connector-color: #999;
+  --dot-color: #0065a4;
+  --dot-border-color: #ffffff;
+  --card-background: #ffffff;
+  --card-shadow: 0 4px 12px rgba(0, 0, 0, 0.06);
+  --card-shadow-hover: 0 10px 22px rgba(0, 0, 0, 0.08);
+  --year-color: #0065a4;
+  --body-text-color: #333;
+  --decade-text-color: #4d6277;
+  --decade-background: #edf2f8;
+  --tick-color: #9eb6cc;
+  --decade-shadow: 0 2px 4px rgba(0, 0, 0, 0.06);
+  --subheading-color: #555;
+
+  /* Animation Timing & Easing */
+  --timeline-ease: ease;
+  --dot-delay: 0s;
+  --dot-appear-duration: 0.35s;
+  --connector-duration: 0.75s;
+  --connector-delay: 0.25s;
+  --card-delay: 0.45s;
+  --card-fade-duration: 0.5s;
+  --progress-reveal-duration: 0.4s;
+  --progress-height-duration: 0.2s;
+}
+
+/* Vertical line */
+.cdi-timeline {
+  position: relative;
+  padding: var(--timeline-vertical-padding) 0 calc(var(--future-length) + var(--future-gap)) 0;
+  min-height: calc(var(--spine-length) + var(--future-length) + var(--future-gap));
+}
+
+.cdi-timeline::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 50%;
+  width: var(--spine-width);
+  height: var(--spine-length);
+  transform: translateX(-50%);
+  background: var(--spine-color);
+  z-index: 0;
+}
+
+
+.cdi-timeline::after {
+  content: "";
+  position: absolute;
+  top: calc(var(--spine-length) + var(--future-gap));
+  left: 50%;
+  width: var(--spine-width);
+  height: var(--future-length);
+  transform: translateX(-50%);
+  background-image:
+    linear-gradient(var(--progress-color), var(--progress-color)),
+    linear-gradient(var(--spine-color), var(--spine-color));
+  background-repeat: no-repeat;
+  background-size: 100% var(--future-progress), 100% 100%;
+  background-position: 0 0, 0 0;
+  transition: background-size var(--progress-reveal-duration) var(--timeline-ease);
+  -webkit-mask-image: linear-gradient(
+    to bottom,
+    rgba(0, 0, 0, 1) 0px,
+    rgba(0, 0, 0, 1) 28px,
+    transparent 28px,
+    transparent 38px,
+    rgba(0, 0, 0, 1) 38px,
+    rgba(0, 0, 0, 1) 60px,
+    transparent 60px,
+    transparent 70px,
+    rgba(0, 0, 0, 1) 70px,
+    rgba(0, 0, 0, 1) 88px,
+    transparent 88px,
+    transparent 98px,
+    rgba(0, 0, 0, 1) 98px,
+    rgba(0, 0, 0, 1) 114px,
+    transparent 114px,
+    transparent 122px,
+    rgba(0, 0, 0, 1) 122px,
+    rgba(0, 0, 0, 1) 136px,
+    transparent 136px,
+    transparent 144px,
+    rgba(0, 0, 0, 1) 144px,
+    rgba(0, 0, 0, 1) 156px,
+    transparent 156px,
+    transparent 160px
+  );
+  mask-image: linear-gradient(
+    to bottom,
+    rgba(0, 0, 0, 1) 0px,
+    rgba(0, 0, 0, 1) 28px,
+    transparent 28px,
+    transparent 38px,
+    rgba(0, 0, 0, 1) 38px,
+    rgba(0, 0, 0, 1) 60px,
+    transparent 60px,
+    transparent 70px,
+    rgba(0, 0, 0, 1) 70px,
+    rgba(0, 0, 0, 1) 88px,
+    transparent 88px,
+    transparent 98px,
+    rgba(0, 0, 0, 1) 98px,
+    rgba(0, 0, 0, 1) 114px,
+    transparent 114px,
+    transparent 122px,
+    rgba(0, 0, 0, 1) 122px,
+    rgba(0, 0, 0, 1) 136px,
+    transparent 136px,
+    transparent 144px,
+    rgba(0, 0, 0, 1) 144px,
+    rgba(0, 0, 0, 1) 156px,
+    transparent 156px,
+    transparent 160px
+  );
+  -webkit-mask-repeat: no-repeat;
+  mask-repeat: no-repeat;
+  z-index: 0;
+}
+
+.cdi-timeline-progress {
+  position: absolute;
+  top: 0;
+  left: 50%;
+  width: var(--spine-width);
+  height: var(--line-progress);
+  transform: translateX(-50%);
+  background: var(--progress-color);
+  border-radius: var(--progress-radius);
+  z-index: 0;
+  transition: height var(--progress-height-duration) var(--timeline-ease);
+}
+
+.cdi-timeline .cdi-timeline-progress {
+  display: none;
+}
+
+.cdi-timeline.is-animated .cdi-timeline-progress {
+  display: block;
+}
+
+/* Individual items */
+.cdi-timeline-item {
+  position: relative;
+  z-index: 1;
+  width: 50%;
+  padding-bottom: var(--item-spacing);
+  box-sizing: border-box;
+  transition: opacity 0.35s var(--timeline-ease);
+  --connector-start-clip-start: 0%;
+  --connector-start-clip-end: 100%;
+}
+
+.cdi-timeline.is-animated .cdi-timeline-item {
+  opacity: 0;
+}
+
+.cdi-timeline.is-animated .cdi-timeline-item.is-visible {
+  opacity: 1;
+}
+
+/* Odd = left, even = right */
+.cdi-timeline-item:nth-child(odd) {
+  padding-right: var(--card-offset);
+  text-align: right;
+}
+
+.cdi-timeline-item:nth-child(even) {
+  margin-left: 50%;
+  padding-left: var(--card-offset);
+  text-align: left;
+}
+
+/* Dot on the central line */
+.cdi-timeline-item::before {
+  content: "";
+  position: absolute;
+  top: var(--dot-offset);
+  width: var(--dot-diameter);
+  height: var(--dot-diameter);
+  border-radius: 50%;
+  background: var(--dot-color);
+  border: var(--dot-border-width) solid var(--dot-border-color);
+  box-shadow: 0 0 0 var(--dot-ring) var(--dot-color);
+  transform: translate(-50%, -50%);
+  z-index: 3;
+}
+
+.cdi-timeline.is-animated .cdi-timeline-item::before {
+  opacity: 0;
+  transform: translate(-50%, -50%) scale(0.7);
+  transition: opacity var(--dot-appear-duration) var(--timeline-ease) var(--dot-delay), transform var(--dot-appear-duration) var(--timeline-ease) var(--dot-delay);
+}
+
+.cdi-timeline.is-animated .cdi-timeline-item.is-visible::before {
+  opacity: 1;
+  transform: translate(-50%, -50%) scale(1);
+}
+
+/* Position of the dot for left/right */
+.cdi-timeline-item:nth-child(odd)::before {
+  left: 100%;
+}
+
+.cdi-timeline-item:nth-child(even)::before {
+  left: 0;
+}
+
+/* Dashed connector from dot to card */
+.cdi-timeline-item::after {
+  content: "";
+  position: absolute;
+  top: var(--dot-offset);
+  width: var(--connector-length);
+  border-top: var(--connector-stroke-width) dashed var(--connector-color);
+  transform: translateY(-50%);
+  z-index: 0;
+  clip-path: inset(0 0 0 0);
+  transition: clip-path var(--connector-duration) var(--timeline-ease) calc(var(--dot-delay) + var(--connector-delay));
+}
+
+.cdi-timeline.is-animated .cdi-timeline-item::after {
+  clip-path: inset(0 var(--connector-start-clip-end) 0 var(--connector-start-clip-start));
+}
+
+.cdi-timeline.is-animated .cdi-timeline-item.is-visible::after {
+  clip-path: inset(0 0 0 0);
+}
+
+.cdi-timeline-item:nth-child(odd)::after {
+  right: 0;
+  --connector-start-clip-start: 100%;
+  --connector-start-clip-end: 0%;
+}
+
+.cdi-timeline-item:nth-child(even)::after {
+  left: 0;
+  --connector-start-clip-start: 0%;
+  --connector-start-clip-end: 100%;
+}
+
+/* Card */
+.cdi-timeline-card {
+  display: block;
+  width: 100%;
+  max-width: var(--card-max-width);
+  background: var(--card-background);
+  border-radius: var(--card-radius);
+  padding: var(--card-padding);
+  box-shadow: var(--card-shadow);
+  text-align: left;
+  position: relative;
+  z-index: 2;
+  transition: box-shadow 0.2s var(--timeline-ease), transform 0.2s var(--timeline-ease);
+}
+
+.cdi-timeline.is-animated .cdi-timeline-card {
+  opacity: 0;
+  transition:
+    opacity var(--card-fade-duration) var(--timeline-ease)
+      calc(var(--dot-delay) + var(--connector-delay) + var(--card-delay)),
+    box-shadow 0.2s var(--timeline-ease),
+    transform 0.2s var(--timeline-ease);
+}
+
+.cdi-timeline.is-animated .cdi-timeline-item.is-visible .cdi-timeline-card {
+  opacity: 1;
+}
+
+.cdi-timeline-card:hover {
+  box-shadow: var(--card-shadow-hover);
+  transform: scale(1.02);
+}
+
+.cdi-timeline-item:nth-child(odd) .cdi-timeline-card {
+  margin-left: auto;
+}
+
+.cdi-timeline-item:nth-child(even) .cdi-timeline-card {
+  margin-right: auto;
+}
+
+.cdi-timeline-year {
+  font-weight: 700;
+  font-size: 1.1rem;
+  color: var(--year-color);
+  margin-bottom: 0.35rem;
+}
+
+.cdi-timeline-body {
+  font-size: 0.95rem;
+  line-height: 1.4;
+  color: var(--body-text-color);
+}
+
+.cdi-timeline-year-tick-layer {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: -1;
+}
+
+.cdi-timeline-year-tick {
+  position: absolute;
+  left: 50%;
+  width: var(--year-tick-width);
+  height: var(--year-tick-height);
+  background: var(--tick-color);
+  transform: translate(-50%, -50%);
+  opacity: 0.9;
+}
+
+.cdi-timeline-decade-layer {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 0;
+}
+
+.cdi-timeline-decade {
+  position: absolute;
+  left: calc(50% + var(--decade-label-offset));
+  padding: 0.1rem 0.45rem;
+  font-size: 0.8rem;
+  color: var(--decade-text-color);
+  background: var(--decade-background);
+  border-radius: var(--decade-radius);
+  transform: translateY(-50%);
+  white-space: nowrap;
+  box-shadow: var(--decade-shadow);
+}
+
+/* Small screen: stack items on one side */
+@media (max-width: 768px) {
+  .cdi-timeline::before {
+    left: var(--mobile-spine-offset);
+  }
+  .cdi-timeline::after {
+    left: var(--mobile-spine-offset);
+    transform: none;
+  }
+  .cdi-timeline-year-tick {
+    left: var(--mobile-spine-offset);
+    transform: translateY(-50%);
+  }
+  .cdi-timeline-decade {
+    left: var(--mobile-decade-offset);
+    right: auto;
+  }
+  .cdi-timeline-item,
+  .cdi-timeline-item:nth-child(even) {
+    width: 100%;
+    margin-left: 0;
+    padding-left: var(--mobile-item-padding);
+    padding-right: 0;
+    text-align: left;
+  }
+  .cdi-timeline-item::before {
+    left: var(--mobile-spine-offset);
+  }
+  .cdi-timeline-item::after {
+    display: none;
+  }
+}
+</style>
+
+<section class="cdi-timeline-wrapper">
+  <h2 class="cdi-timeline-heading">Milestones</h2>
+  <p class="cdi-timeline-subheading">Over 60 years of innovation in adsorption and purification.</p>
+
+  <div class="cdi-timeline">
+    <div class="cdi-timeline-progress" aria-hidden="true"></div>
+
+    <!-- 1959 -->
+    <div class="cdi-timeline-item">
+      <div class="cdi-timeline-card">
+        <div class="cdi-timeline-year">1959</div>
+        <div class="cdi-timeline-body">
+          Chemical Design, Inc. is founded, focusing on adsorption and purification systems.
+        </div>
+      </div>
+    </div>
+
+    <!-- 1964 / 1965 -->
+    <div class="cdi-timeline-item">
+      <div class="cdi-timeline-card">
+        <div class="cdi-timeline-year">1964 / 1965</div>
+        <div class="cdi-timeline-body">
+          Commercial phosgene plant; adsorption for neon purification and hydrogen purification using molecular sieves. First air &amp; LNG pre-purifier using MS. Cryogenic adsorption for hydrogen purification.
+        </div>
+      </div>
+    </div>
+
+    <!-- 1967 / 1968 -->
+    <div class="cdi-timeline-item">
+      <div class="cdi-timeline-card">
+        <div class="cdi-timeline-year">1967 / 1968</div>
+        <div class="cdi-timeline-body">
+          Helium purification and PSA hydrogen purification under Exxon license.
+        </div>
+      </div>
+    </div>
+
+    <!-- 1971 / 1972 -->
+    <div class="cdi-timeline-item">
+      <div class="cdi-timeline-card">
+        <div class="cdi-timeline-year">1971 / 1972</div>
+        <div class="cdi-timeline-body">
+          Olefin dryers and argon purification via catalytic reaction and drying.
+        </div>
+      </div>
+    </div>
+
+    <!-- 1973 -->
+    <div class="cdi-timeline-item">
+      <div class="cdi-timeline-card">
+        <div class="cdi-timeline-year">1973</div>
+        <div class="cdi-timeline-body">
+          Recovery of hydrogen from silicon reactor vents.
+        </div>
+      </div>
+    </div>
+
+    <!-- 1980 -->
+    <div class="cdi-timeline-item">
+      <div class="cdi-timeline-card">
+        <div class="cdi-timeline-year">1980</div>
+        <div class="cdi-timeline-body">
+          Use of split beds (AA/MS) for air pre-purifiers.
+        </div>
+      </div>
+    </div>
+
+    <!-- 1982 -->
+    <div class="cdi-timeline-item">
+      <div class="cdi-timeline-card">
+        <div class="cdi-timeline-year">1982</div>
+        <div class="cdi-timeline-body">
+          Heavy hydrocarbon removal from natural gas.
+        </div>
+      </div>
+    </div>
+
+    <!-- 1983 -->
+    <div class="cdi-timeline-item">
+      <div class="cdi-timeline-card">
+        <div class="cdi-timeline-year">1983</div>
+        <div class="cdi-timeline-body">
+          CDI moves operations to expand capacity.
+        </div>
+      </div>
+    </div>
+
+    <!-- 1995 -->
+    <div class="cdi-timeline-item">
+      <div class="cdi-timeline-card">
+        <div class="cdi-timeline-year">1995</div>
+        <div class="cdi-timeline-body">
+          Designed, fabricated, and provided site management for the installation of a polysilicon production facility in Alabama, USA.
+        </div>
+      </div>
+    </div>
+
+    <!-- 2001 -->
+    <div class="cdi-timeline-item">
+      <div class="cdi-timeline-card">
+        <div class="cdi-timeline-year">2001</div>
+        <div class="cdi-timeline-body">
+          Compressor-less, zero-loss, high-purity hydrogen purification system for tritium removal.
+        </div>
+      </div>
+    </div>
+
+    <!-- 2003 -->
+    <div class="cdi-timeline-item">
+      <div class="cdi-timeline-card">
+        <div class="cdi-timeline-year">2003</div>
+        <div class="cdi-timeline-body">
+          Designed and fabricated a +300 TPD hydrogen purification system.
+        </div>
+      </div>
+    </div>
+
+    <!-- 2007 -->
+    <div class="cdi-timeline-item">
+      <div class="cdi-timeline-card">
+        <div class="cdi-timeline-year">2007</div>
+        <div class="cdi-timeline-body">
+          CDI surpasses US$50 million in annual revenue for the first time.
+        </div>
+      </div>
+    </div>
+
+    <!-- 2016 -->
+    <div class="cdi-timeline-item">
+      <div class="cdi-timeline-card">
+        <div class="cdi-timeline-year">2016</div>
+        <div class="cdi-timeline-body">
+          Delivered the first fully integrated plant skid solution.
+        </div>
+      </div>
+    </div>
+
+    <!-- 2019 -->
+    <div class="cdi-timeline-item">
+      <div class="cdi-timeline-card">
+        <div class="cdi-timeline-year">2019</div>
+        <div class="cdi-timeline-body">
+          CDI becomes part of the Zeton group, enhancing global reach and capabilities.
+        </div>
+      </div>
+    </div>
+
+    <!-- 2025 -->
+    <div class="cdi-timeline-item">
+      <div class="cdi-timeline-card">
+        <div class="cdi-timeline-year">2025</div>
+        <div class="cdi-timeline-body">
+          Moved into current facility, expanding engineering, fabrication, and testing capacity.
+        </div>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+<script>
+      const initTimeline = () => {
+        const timeline = document.querySelector('.cdi-timeline');
+        if (!timeline) return;
+
+        let items = Array.from(timeline.querySelectorAll('.cdi-timeline-item'));
+        const progressBar = timeline.querySelector('.cdi-timeline-progress');
+          const YEAR_PIXEL_STEP = 30;
+          const SPINE_TAIL_LENGTH = 40;
+          const FUTURE_SEGMENT_LENGTH = 140;
+          const FUTURE_GAP = 10;
+            const MIN_GAP = 1;
+            const INITIAL_REVEAL_DELAY = 160;
+            const DOT_REM_OFFSET = 0.75;
+            const VISIBILITY_RATIO = 0.05;
+            const ROOT_MARGIN = '200px 0px -10% 0px';
+            const LAST_ITEM_OVERSCROLL = 40;
+          let spineLength = 0;
+          let totalLineLength = 0;
+          let itemProgressHeights = [];
+          let maxProgress = 0;
+          let maxReachedIndex = -1;
+
+    timeline.classList.add('is-animated');
+
+    const parseYearValue = (text) => {
+      const matches = text.match(/\d{4}/g);
+      if (!matches || !matches.length) return null;
+      const values = matches.map(Number);
+      const average = values.reduce((sum, year) => sum + year, 0) / values.length;
+      return average;
+    };
+
+    const itemsWithYears = items
+      .map((item, index) => {
+        const yearText = item.querySelector('.cdi-timeline-year')?.textContent || '';
+        return {
+          item,
+          year: parseYearValue(yearText) ?? 0,
+          originalIndex: index,
+        };
+      })
+      .sort((a, b) => (a.year - b.year) || (a.originalIndex - b.originalIndex));
+
+    const isChronological = itemsWithYears.every((entry, idx) => entry.originalIndex === idx);
+    if (!isChronological) {
+      const fragment = document.createDocumentFragment();
+      itemsWithYears.forEach(({ item }) => fragment.appendChild(item));
+      progressBar?.after(fragment);
+    }
+
+    items = itemsWithYears.map(({ item }) => item);
+      const yearValues = itemsWithYears.map(({ year }) => year);
+      const minYearValue = Math.min(...yearValues);
+      const maxYearValue = Math.max(...yearValues);
+        const desiredDotOffsets = yearValues.map((year) => (year - minYearValue) * YEAR_PIXEL_STEP);
+        const lastDesiredOffset = Math.max(...desiredDotOffsets, 0);
+        spineLength = lastDesiredOffset + SPINE_TAIL_LENGTH;
+        totalLineLength = spineLength + FUTURE_GAP + FUTURE_SEGMENT_LENGTH;
+
+        timeline.style.setProperty('--spine-length', `${spineLength}px`);
+        timeline.style.setProperty('--future-length', `${FUTURE_SEGMENT_LENGTH}px`);
+        timeline.style.setProperty('--future-gap', `${FUTURE_GAP}px`);
+        timeline.style.minHeight = `${totalLineLength}px`;
+
+      let previousYear = yearValues[0] ?? 0;
+      items.forEach((item, index) => {
+        if (index === 0) {
+          item.style.marginTop = '0';
+          return;
+        }
+
+        const thisYear = yearValues[index] ?? previousYear;
+        const gap = Math.max(MIN_GAP, thisYear - previousYear);
+        const spacing = gap * YEAR_PIXEL_STEP;
+
+        item.style.marginTop = `${spacing}px`;
+        previousYear = thisYear;
+      });
+
+        const getDotBaseOffset = (item) => {
+          const baseFont = parseFloat(getComputedStyle(document.documentElement).fontSize) || 16;
+          const dotOffset = DOT_REM_OFFSET * baseFont; // matches 0.75rem used in CSS
+          return item.offsetTop + dotOffset;
+        };
+
+        const alignDotsToYearScale = () => {
+          items.forEach((item, idx) => {
+            const desiredOffset = desiredDotOffsets[idx] ?? 0;
+            const currentOffset = getDotBaseOffset(item);
+            const adjustment = desiredOffset - currentOffset;
+            const currentMargin = parseFloat(getComputedStyle(item).marginTop) || 0;
+            item.style.marginTop = `${currentMargin + adjustment}px`;
+          });
+        };
+
+        const createDecadeLabels = () => {
+          const yearOffsets = yearValues
+            .map((year, idx) => ({
+              year,
+              offset: desiredDotOffsets[idx],
+            }))
+            .filter(({ year }) => Number.isFinite(year))
+            .sort((a, b) => a.year - b.year);
+
+        if (!yearOffsets.length) return;
+
+        const minYear = yearOffsets[0].year;
+        const maxYear = yearOffsets[yearOffsets.length - 1].year;
+
+        const existingLayer = timeline.querySelector('.cdi-timeline-decade-layer');
+        if (existingLayer) existingLayer.remove();
+
+        const layer = document.createElement('div');
+        layer.className = 'cdi-timeline-decade-layer';
+
+        const getOffsetForYear = (year) => {
+          if (year <= yearOffsets[0].year) return yearOffsets[0].offset;
+          if (year >= yearOffsets[yearOffsets.length - 1].year) return yearOffsets[yearOffsets.length - 1].offset;
+
+          for (let i = 0; i < yearOffsets.length - 1; i++) {
+            const current = yearOffsets[i];
+            const next = yearOffsets[i + 1];
+
+            if (year >= current.year && year <= next.year) {
+              const yearGap = next.year - current.year || 1;
+              const gapRatio = (year - current.year) / yearGap;
+              return current.offset + gapRatio * (next.offset - current.offset);
+            }
+          }
+
+          return yearOffsets[yearOffsets.length - 1].offset;
+        };
+
+          const startDecade = (minYear % 10 === 0)
+            ? minYear
+            : Math.ceil(minYear / 10) * 10;
+          const endDecade = (maxYear % 10 === 0)
+            ? maxYear
+            : Math.floor(maxYear / 10) * 10;
+
+          for (let decade = startDecade; decade <= endDecade; decade += 10) {
+            const position = getOffsetForYear(decade);
+            const label = document.createElement('div');
+            label.className = 'cdi-timeline-decade';
+            label.textContent = `${decade}s`;
+            label.style.top = `${position}px`;
+            layer.appendChild(label);
+          }
+
+          timeline.appendChild(layer);
+        };
+
+        const createYearTicks = () => {
+          if (!Number.isFinite(minYearValue) || !Number.isFinite(maxYearValue)) return;
+
+          const existingLayer = timeline.querySelector('.cdi-timeline-year-tick-layer');
+          if (existingLayer) existingLayer.remove();
+
+          const layer = document.createElement('div');
+          layer.className = 'cdi-timeline-year-tick-layer';
+
+          for (let year = minYearValue; year <= maxYearValue; year += 1) {
+            const offset = (year - minYearValue) * YEAR_PIXEL_STEP;
+            const tick = document.createElement('div');
+            tick.className = 'cdi-timeline-year-tick';
+            tick.style.top = `${offset}px`;
+            layer.appendChild(tick);
+          }
+
+          timeline.appendChild(layer);
+        };
+
+        const refreshLineMetrics = () => {
+          const maxDotOffset = items.reduce(
+            (max, item) => Math.max(max, getDotBaseOffset(item)),
+            0
+          );
+
+          spineLength = Math.max(spineLength, Math.ceil(maxDotOffset));
+          totalLineLength = spineLength + FUTURE_GAP + FUTURE_SEGMENT_LENGTH;
+
+          timeline.style.setProperty('--spine-length', `${spineLength}px`);
+          timeline.style.setProperty('--future-length', `${FUTURE_SEGMENT_LENGTH}px`);
+          timeline.style.setProperty('--future-gap', `${FUTURE_GAP}px`);
+          timeline.style.minHeight = `${totalLineLength}px`;
+        };
+
+        const calculateProgressHeights = () => {
+          const remSize = parseFloat(getComputedStyle(document.documentElement).fontSize) || 16;
+          const dotOffset = DOT_REM_OFFSET * remSize;
+          itemProgressHeights = items.map((item) => {
+            return Math.min(totalLineLength, item.offsetTop + dotOffset);
+          });
+        };
+
+        const getHighestVisibleIndex = () => {
+          let highest = -1;
+          items.forEach((item, index) => {
+            if (item.classList.contains('is-visible')) {
+              highest = Math.max(highest, index);
+            }
+          });
+          return highest;
+        };
+
+        const updateLineProgress = () => {
+          if (!progressBar) return;
+
+          const highestVisibleIndex = getHighestVisibleIndex();
+          if (highestVisibleIndex > maxReachedIndex) {
+            maxReachedIndex = highestVisibleIndex;
+          }
+
+          const targetHeight = itemProgressHeights[maxReachedIndex] ?? 0;
+          const hasReachedLastItem = maxReachedIndex >= items.length - 1;
+
+          const timelineRect = timeline.getBoundingClientRect();
+          const viewportHeight = window.innerHeight || document.documentElement.clientHeight;
+          const viewportProgress = Math.max(0, viewportHeight - timelineRect.top);
+          const hasClearedLastItem = viewportProgress >= targetHeight + LAST_ITEM_OVERSCROLL;
+          const desiredProgress = hasReachedLastItem
+            ? (hasClearedLastItem ? Math.max(targetHeight, viewportProgress) : targetHeight)
+            : targetHeight;
+
+        maxProgress = Math.min(totalLineLength, Math.max(maxProgress, desiredProgress));
+
+        const clampedLineProgress = Math.min(maxProgress, spineLength);
+        const overflowProgress = hasReachedLastItem ? Math.max(0, maxProgress - spineLength - FUTURE_GAP) : 0;
+        const futureProgress = Math.min(FUTURE_SEGMENT_LENGTH, overflowProgress);
+
+        progressBar.style.height = `${clampedLineProgress}px`;
+        timeline.style.setProperty('--line-progress', `${clampedLineProgress}px`);
+        timeline.style.setProperty('--future-progress', `${futureProgress}px`);
+      };
+
+      let observer;
+      let hasCompletedInitialReveal = false;
+
+      const getOnScreenItems = () => {
+        const viewportHeight = window.innerHeight || document.documentElement.clientHeight;
+
+        return items.filter((item) => {
+          if (item.classList.contains('is-visible')) return false;
+
+          const rect = item.getBoundingClientRect();
+          const isOnScreen = rect.top < viewportHeight * 0.9 && rect.bottom > 0;
+          return isOnScreen;
+        });
+      };
+
+      const revealIfInViewport = () => {
+        if (!hasCompletedInitialReveal) return;
+
+        const onScreenItems = getOnScreenItems();
+        if (!onScreenItems.length) return;
+
+        onScreenItems.forEach((item) => {
+          item.classList.add('is-visible');
+          observer?.unobserve(item);
+        });
+
+        updateLineProgress();
+      };
+
+
+      observer = new IntersectionObserver(
+        (entries) => {
+          entries.forEach((entry) => {
+            if (entry.isIntersecting) {
+              entry.target.classList.add('is-visible');
+              observer.unobserve(entry.target);
+              updateLineProgress();
+            }
+          });
+        },
+        { threshold: VISIBILITY_RATIO, rootMargin: ROOT_MARGIN }
+      );
+
+    alignDotsToYearScale();
+    refreshLineMetrics();
+    createDecadeLabels();
+    createYearTicks();
+    calculateProgressHeights();
+
+      const initialVisibleItems = getOnScreenItems().sort((a, b) => a.offsetTop - b.offsetTop);
+
+    const remainingItems = items.filter((item) => !initialVisibleItems.includes(item));
+    remainingItems.forEach((item) => observer.observe(item));
+
+    const revealSequentially = (itemsToReveal, index = 0) => {
+      if (index >= itemsToReveal.length) {
+        hasCompletedInitialReveal = true;
+        revealIfInViewport();
+        return;
+      }
+
+      itemsToReveal[index].classList.add('is-visible');
+      updateLineProgress();
+      setTimeout(() => revealSequentially(itemsToReveal, index + 1), INITIAL_REVEAL_DELAY);
+    };
+
+      if (initialVisibleItems.length) {
+        revealSequentially(initialVisibleItems);
+      }
+
+      if (!initialVisibleItems.length) {
+        hasCompletedInitialReveal = true;
+        revealIfInViewport();
+      }
+      updateLineProgress();
+      const handleScroll = () => {
+        revealIfInViewport();
+        updateLineProgress();
+      };
+
+        const preventOverlap = () => {};
+
+        window.addEventListener('scroll', handleScroll, { passive: true });
+        window.addEventListener('resize', () => {
+          alignDotsToYearScale();
+          preventOverlap();
+          refreshLineMetrics();
+          createDecadeLabels();
+          createYearTicks();
+          calculateProgressHeights();
+          maxProgress = Math.min(maxProgress, totalLineLength);
+        updateLineProgress();
+      });
+    };
+
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', initTimeline);
+    } else {
+      initTimeline();
+    }
+  </script>
