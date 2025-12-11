@@ -589,6 +589,10 @@
     left: var(--mobile-spine-offset);
     transform: none;
   }
+  .cdi-timeline-progress {
+    left: var(--mobile-spine-offset);
+    transform: translateX(-50%);
+  }
   .cdi-timeline-year-tick {
     left: var(--mobile-spine-offset);
     transform: translateY(-50%);
@@ -605,11 +609,18 @@
     padding-right: 0;
     text-align: left;
   }
-  .cdi-timeline-item::before {
+  .cdi-timeline-item::before,
+  .cdi-timeline-item:nth-child(odd)::before,
+  .cdi-timeline-item:nth-child(even)::before {
     left: var(--mobile-spine-offset);
+    transform: translate(-50%, -50%);
   }
   .cdi-timeline-item::after {
     display: none;
+  }
+  .cdi-timeline-item:nth-child(odd) .cdi-timeline-card,
+  .cdi-timeline-item:nth-child(even) .cdi-timeline-card {
+    margin: 0;
   }
 }
 </style>
