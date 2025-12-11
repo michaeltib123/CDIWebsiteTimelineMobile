@@ -530,6 +530,9 @@
   transition: opacity 0.35s var(--timeline-ease);
   --connector-start-clip-start: 0%;
   --connector-start-clip-end: 100%;
+  --card-shift: 0px;
+  --connector-vertical: 0px;
+  --connector-elbow: calc(var(--connector-length) * 0.5);
 }
 
 .cdi-timeline.is-animated .cdi-timeline-item {
@@ -594,11 +597,36 @@
   position: absolute;
   top: var(--dot-offset);
   width: var(--connector-length);
-  border-top: var(--connector-stroke-width) dashed var(--connector-color);
+  height: calc(var(--connector-vertical) + var(--connector-stroke-width));
   transform: translateY(-50%);
   z-index: 0;
   opacity: 0;
   clip-path: inset(0 0 0 0);
+  background:
+    repeating-linear-gradient(
+      to right,
+      var(--connector-color) 0,
+      var(--connector-color) var(--connector-stroke-width),
+      transparent var(--connector-stroke-width),
+      transparent calc(var(--connector-stroke-width) * 2)
+    ) 0 0 / var(--connector-elbow) var(--connector-stroke-width) no-repeat,
+    repeating-linear-gradient(
+      to bottom,
+      var(--connector-color) 0,
+      var(--connector-color) var(--connector-stroke-width),
+      transparent var(--connector-stroke-width),
+      transparent calc(var(--connector-stroke-width) * 2)
+    ) var(--connector-elbow) 0 /
+      var(--connector-stroke-width) calc(var(--connector-vertical) + var(--connector-stroke-width))
+      no-repeat,
+    repeating-linear-gradient(
+      to right,
+      var(--connector-color) 0,
+      var(--connector-color) var(--connector-stroke-width),
+      transparent var(--connector-stroke-width),
+      transparent calc(var(--connector-stroke-width) * 2)
+    ) var(--connector-elbow) var(--connector-vertical) /
+      calc(100% - var(--connector-elbow)) var(--connector-stroke-width) no-repeat;
   transition: clip-path var(--connector-duration) var(--timeline-ease) calc(var(--dot-delay) + var(--connector-delay));
 }
 
@@ -623,6 +651,7 @@
 
 .cdi-timeline-item:nth-child(even)::after {
   left: 0;
+  transform: translateY(-50%) scaleX(-1);
   --connector-start-clip-start: 0%;
   --connector-start-clip-end: 100%;
 }
@@ -640,6 +669,7 @@
   position: relative;
   z-index: 2;
   opacity: 0;
+  transform: translateY(var(--card-shift));
   transition: box-shadow 0.2s var(--timeline-ease), transform 0.2s var(--timeline-ease);
 }
 
@@ -658,7 +688,7 @@
 
 .cdi-timeline-card:hover {
   box-shadow: var(--card-shadow-hover);
-  transform: scale(1.02);
+  transform: translateY(var(--card-shift)) scale(1.02);
 }
 
 .cdi-timeline-item:nth-child(odd) .cdi-timeline-card {
@@ -1153,6 +1183,40 @@
           timeline.style.minHeight = `${state.totalLineLength}px`;
         };
 
+        const resetCardOffsets = () => {
+          items.forEach((item) => {
+            item.style.setProperty('--card-shift', '0px');
+            item.style.setProperty('--connector-vertical', '0px');
+          });
+        };
+
+        const preventOverlap = () => {
+          resetCardOffsets();
+
+          const timelineRect = timeline.getBoundingClientRect();
+          const minGap = parseFloat(getComputedStyle(timeline).getPropertyValue('--item-spacing')) || 0;
+          const timelineTop = timelineRect.top + window.scrollY;
+
+          let lastBottom = -Infinity;
+
+          items.forEach((item) => {
+            const card = item.querySelector('.cdi-timeline-card');
+            if (!card) return;
+
+            const rect = card.getBoundingClientRect();
+            const cardTop = rect.top + window.scrollY - timelineTop;
+            const cardBottom = cardTop + rect.height;
+
+            const requiredTop = lastBottom === -Infinity ? cardTop : lastBottom + minGap;
+            const shift = Math.max(0, requiredTop - cardTop);
+
+            item.style.setProperty('--card-shift', `${shift}px`);
+            item.style.setProperty('--connector-vertical', `${shift}px`);
+
+            lastBottom = Math.max(cardBottom + shift, cardBottom);
+          });
+        };
+
         const calculateProgressHeights = () => {
           const remSize = parseFloat(getComputedStyle(document.documentElement).fontSize) || 16;
           const dotOffset = state.DOT_REM_OFFSET * remSize;
@@ -1247,6 +1311,7 @@
       );
 
     alignDotsToYearScale();
+    preventOverlap();
     refreshLineMetrics();
     createDecadeLabels();
     createYearTicks();
@@ -1282,8 +1347,6 @@
         revealIfInViewport();
         updateLineProgress();
       };
-
-        const preventOverlap = () => {};
 
         window.addEventListener('scroll', handleScroll, { passive: true });
         window.addEventListener('resize', () => {
