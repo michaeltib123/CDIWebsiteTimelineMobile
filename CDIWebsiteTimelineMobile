@@ -274,6 +274,119 @@
   --progress-height-duration: 0.2s;
 }
 
+/* Small screen: stack items on one side */
+@media (max-width: 768px) {
+  .cdi-timeline-wrapper {
+    --spine-width: 4px;
+    --spine-length: 0px;
+    --future-length: 120px;
+    --future-gap: 10px;
+    --line-progress: 0px;
+    --future-progress: 0px;
+    --timeline-vertical-padding: 0.75rem;
+    --item-spacing: 1.4rem;
+    --card-offset: 0rem;
+    --connector-length: 0px;
+    --connector-stroke-width: 2px;
+    --dot-offset: 0.7rem;
+    --dot-diameter: 8px;
+    --dot-border-width: 3px;
+    --dot-ring: 3px;
+    --card-max-width: 100%;
+    --card-padding: 1rem 1.1rem;
+    --card-radius: 6px;
+    --progress-radius: 3px;
+    --decade-label-offset: 16px;
+    --decade-radius: 10px;
+    --year-tick-width: 10px;
+    --year-tick-height: 1px;
+    --mobile-spine-offset: 16px;
+    --mobile-decade-offset: calc(var(--mobile-spine-offset) - 48px);
+    --mobile-item-padding: 3.25rem;
+
+    --spine-color: #d9e5f0;
+    --progress-color: #0065a4;
+    --connector-color: #999;
+    --dot-color: #0065a4;
+    --dot-border-color: #ffffff;
+    --card-background: #ffffff;
+    --card-shadow: 0 4px 12px rgba(0, 0, 0, 0.06);
+    --card-shadow-hover: 0 10px 22px rgba(0, 0, 0, 0.08);
+    --year-color: #0065a4;
+    --body-text-color: #333;
+    --decade-text-color: #4d6277;
+    --decade-background: #edf2f8;
+    --tick-color: #9eb6cc;
+    --decade-shadow: 0 2px 4px rgba(0, 0, 0, 0.06);
+    --subheading-color: #555;
+
+    --timeline-ease: ease;
+    --dot-delay: 0s;
+    --dot-appear-duration: 0.35s;
+    --connector-duration: 0.75s;
+    --connector-delay: 0.25s;
+    --card-delay: 0.45s;
+    --card-fade-duration: 0.5s;
+    --progress-reveal-duration: 0.4s;
+    --progress-height-duration: 0.2s;
+  }
+
+  .cdi-timeline::before,
+  .cdi-timeline::after,
+  .cdi-timeline-progress,
+  .cdi-timeline-year-tick,
+  .cdi-timeline-item::before {
+    left: var(--mobile-spine-offset);
+  }
+
+  .cdi-timeline::before,
+  .cdi-timeline::after,
+  .cdi-timeline-progress {
+    transform: translateX(-50%);
+  }
+
+  .cdi-timeline::after {
+    top: calc(var(--spine-length) + var(--future-gap));
+  }
+
+  .cdi-timeline-year-tick {
+    transform: translate(-50%, -50%);
+  }
+
+  .cdi-timeline-decade {
+    left: var(--mobile-decade-offset);
+    right: auto;
+    transform: translate(-100%, -50%);
+    text-align: right;
+  }
+
+  .cdi-timeline-item,
+  .cdi-timeline-item:nth-child(even) {
+    width: 100%;
+    margin-left: 0;
+    padding-left: var(--mobile-item-padding);
+    padding-right: 0;
+    text-align: left;
+  }
+
+  .cdi-timeline-item::before {
+    transform: translate(-50%, -50%);
+  }
+
+  .cdi-timeline-item:nth-child(odd)::before,
+  .cdi-timeline-item:nth-child(even)::before {
+    left: var(--mobile-spine-offset);
+  }
+
+  .cdi-timeline-item::after {
+    display: none;
+  }
+
+  .cdi-timeline-card {
+    margin: 0;
+  }
+}
+
 /* Vertical line */
 .cdi-timeline {
   position: relative;
@@ -580,92 +693,6 @@
   box-shadow: var(--decade-shadow);
 }
 
-/* Small screen: stack items on one side */
-@media (max-width: 768px) {
-  .cdi-timeline-wrapper {
-    --spine-width: 4px;
-    --spine-length: 0px;
-    --future-length: 120px;
-    --future-gap: 10px;
-    --line-progress: 0px;
-    --future-progress: 0px;
-    --timeline-vertical-padding: 0.75rem;
-    --item-spacing: 1.4rem;
-    --card-offset: 0rem;
-    --connector-length: 0px;
-    --connector-stroke-width: 2px;
-    --dot-offset: 0.7rem;
-    --dot-diameter: 8px;
-    --dot-border-width: 3px;
-    --dot-ring: 3px;
-    --card-max-width: 100%;
-    --card-padding: 1rem 1.1rem;
-    --card-radius: 6px;
-    --progress-radius: 3px;
-    --decade-label-offset: 16px;
-    --decade-radius: 10px;
-    --year-tick-width: 10px;
-    --year-tick-height: 1px;
-    --mobile-spine-offset: 16px;
-    --mobile-decade-offset: calc(var(--mobile-spine-offset) - 48px);
-    --mobile-item-padding: 3.25rem;
-
-    --spine-color: #d9e5f0;
-    --progress-color: #0065a4;
-    --connector-color: #999;
-    --dot-color: #0065a4;
-    --dot-border-color: #ffffff;
-    --card-background: #ffffff;
-    --card-shadow: 0 4px 12px rgba(0, 0, 0, 0.06);
-    --card-shadow-hover: 0 10px 22px rgba(0, 0, 0, 0.08);
-    --year-color: #0065a4;
-    --body-text-color: #333;
-    --decade-text-color: #4d6277;
-    --decade-background: #edf2f8;
-    --tick-color: #9eb6cc;
-    --decade-shadow: 0 2px 4px rgba(0, 0, 0, 0.06);
-    --subheading-color: #555;
-
-    --timeline-ease: ease;
-    --dot-delay: 0s;
-    --dot-appear-duration: 0.35s;
-    --connector-duration: 0.75s;
-    --connector-delay: 0.25s;
-    --card-delay: 0.45s;
-    --card-fade-duration: 0.5s;
-    --progress-reveal-duration: 0.4s;
-    --progress-height-duration: 0.2s;
-  }
-  .cdi-timeline::before {
-    left: var(--mobile-spine-offset);
-  }
-  .cdi-timeline::after {
-    left: var(--mobile-spine-offset);
-    transform: none;
-  }
-  .cdi-timeline-year-tick {
-    left: var(--mobile-spine-offset);
-    transform: translate(-50%, -50%);
-  }
-  .cdi-timeline-decade {
-    left: var(--mobile-decade-offset);
-    right: auto;
-  }
-  .cdi-timeline-item,
-  .cdi-timeline-item:nth-child(even) {
-    width: 100%;
-    margin-left: 0;
-    padding-left: var(--mobile-item-padding);
-    padding-right: 0;
-    text-align: left;
-  }
-  .cdi-timeline-item::before {
-    left: var(--mobile-spine-offset);
-  }
-  .cdi-timeline-item::after {
-    display: none;
-  }
-}
 </style>
 
 <section class="cdi-timeline-wrapper">
