@@ -1337,7 +1337,9 @@
 
         function preventOverlap() {
           const timelineRect = timeline.getBoundingClientRect();
+          const isSingleColumn = window.matchMedia('(max-width: 768px)').matches;
           const previousBottomBySide = {
+            all: -Infinity,
             left: -Infinity,
             right: -Infinity,
           };
@@ -1352,7 +1354,7 @@
             if (!card) return;
 
             const isLeftSide = index % 2 === 0;
-            const sideKey = isLeftSide ? 'left' : 'right';
+            const sideKey = isSingleColumn ? 'all' : (isLeftSide ? 'left' : 'right');
 
             const cardRect = card.getBoundingClientRect();
             const cardTop = cardRect.top - timelineRect.top;
