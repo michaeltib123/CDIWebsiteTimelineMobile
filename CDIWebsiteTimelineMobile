@@ -229,6 +229,7 @@
   --card-offset: 5rem;
   --connector-length: 80px;
   --connector-stroke-width: 2px;
+  --connector-dash-length: 12px;
   --dot-offset: 0.75rem;
   --dot-diameter: 8px;
   --dot-border-width: 3px;
@@ -248,6 +249,7 @@
   --mobile-card-left-padding: 1.1rem;
   --mobile-connector-length: 0px;
   --mobile-spine-align-shift: 0px;
+  --connector-step-ratio: 0.6;
 
   /* Colors */
   --spine-color: #d9e5f0;
@@ -292,6 +294,7 @@
     --card-offset: 0rem;
     --connector-length: 0px;
     --connector-stroke-width: 2px;
+    --connector-dash-length: 12px;
     --dot-offset: 0.7rem;
     --dot-diameter: 8px;
     --dot-border-width: 3px;
@@ -311,6 +314,7 @@
     --mobile-card-left-padding: 1.35rem;
     --mobile-connector-length: calc(var(--mobile-item-padding) + var(--mobile-timeline-gap));
     --mobile-spine-align-shift: 0px;
+    --connector-step-ratio: 0.6;
 
     padding: 0 1.25rem;
 
@@ -530,6 +534,11 @@
   transition: opacity 0.35s var(--timeline-ease);
   --connector-start-clip-start: 0%;
   --connector-start-clip-end: 100%;
+  --card-shift: 0px;
+  --connector-vertical: 0px;
+  --connector-direction: 1;
+  --connector-horizontal-length: var(--connector-length);
+  --connector-step-length: calc(var(--connector-horizontal-length) * var(--connector-step-ratio));
 }
 
 .cdi-timeline.is-animated .cdi-timeline-item {
@@ -593,9 +602,38 @@
   content: "";
   position: absolute;
   top: var(--dot-offset);
-  width: var(--connector-length);
-  border-top: var(--connector-stroke-width) dashed var(--connector-color);
-  transform: translateY(-50%);
+  width: var(--connector-horizontal-length);
+  height: calc(var(--connector-stroke-width) + var(--connector-vertical));
+  background:
+    repeating-linear-gradient(
+      to right,
+      var(--connector-color),
+      var(--connector-color) calc(var(--connector-dash-length) / 2),
+      transparent calc(var(--connector-dash-length) / 2),
+      transparent var(--connector-dash-length)
+    ) 0 0 / var(--connector-step-length) var(--connector-stroke-width) no-repeat,
+    repeating-linear-gradient(
+      to bottom,
+      var(--connector-color),
+      var(--connector-color) calc(var(--connector-dash-length) / 2),
+      transparent calc(var(--connector-dash-length) / 2),
+      transparent var(--connector-dash-length)
+    ) var(--connector-step-length) 0 /
+      var(--connector-stroke-width)
+      var(--connector-vertical)
+      no-repeat,
+    repeating-linear-gradient(
+      to right,
+      var(--connector-color),
+      var(--connector-color) calc(var(--connector-dash-length) / 2),
+      transparent calc(var(--connector-dash-length) / 2),
+      transparent var(--connector-dash-length)
+    ) var(--connector-step-length) var(--connector-vertical) /
+      calc(var(--connector-horizontal-length) - var(--connector-step-length))
+      var(--connector-stroke-width)
+      no-repeat;
+  transform: translateY(-50%) scaleX(var(--connector-direction));
+  transform-origin: left center;
   z-index: 0;
   opacity: 0;
   clip-path: inset(0 0 0 0);
@@ -619,12 +657,16 @@
   right: 0;
   --connector-start-clip-start: 100%;
   --connector-start-clip-end: 0%;
+  --connector-direction: -1;
+  transform-origin: right center;
 }
 
 .cdi-timeline-item:nth-child(even)::after {
   left: 0;
   --connector-start-clip-start: 0%;
   --connector-start-clip-end: 100%;
+  --connector-direction: 1;
+  transform-origin: left center;
 }
 
 /* Card */
@@ -640,6 +682,7 @@
   position: relative;
   z-index: 2;
   opacity: 0;
+  transform: translateY(var(--card-shift, 0px));
   transition: box-shadow 0.2s var(--timeline-ease), transform 0.2s var(--timeline-ease);
 }
 
@@ -658,7 +701,7 @@
 
 .cdi-timeline-card:hover {
   box-shadow: var(--card-shadow-hover);
-  transform: scale(1.02);
+  transform: translateY(var(--card-shift, 0px)) scale(1.02);
 }
 
 .cdi-timeline-item:nth-child(odd) .cdi-timeline-card {
@@ -746,8 +789,8 @@
     display: block;
     left: calc(var(--mobile-spine-offset) + (var(--spine-width) / 2));
     right: auto;
-    width: var(--mobile-connector-length);
-    transform: translateY(-50%);
+    width: var(--connector-horizontal-length);
+    transform: translateY(-50%) scaleX(1);
   }
 
   .cdi-timeline-item:nth-child(odd)::after,
@@ -756,6 +799,8 @@
     right: auto;
     --connector-start-clip-start: 0%;
     --connector-start-clip-end: 100%;
+    --connector-direction: 1;
+    transform-origin: left center;
   }
 
   .cdi-timeline-item,
@@ -766,6 +811,8 @@
     padding-left: calc(var(--mobile-spine-offset) + var(--mobile-item-padding) + var(--mobile-timeline-gap));
     padding-right: 0;
     text-align: left;
+    --connector-horizontal-length: var(--mobile-connector-length);
+    --connector-step-length: calc(var(--connector-horizontal-length) * var(--connector-step-ratio));
   }
 
   .cdi-timeline-item .cdi-timeline-card,
@@ -1161,6 +1208,34 @@
           });
         };
 
+        const preventOverlap = () => {
+          const minGap = 20;
+          let lastBottom = -Infinity;
+
+          items.forEach((item) => {
+            item.style.setProperty('--card-shift', '0px');
+            item.style.setProperty('--connector-vertical', '0px');
+          });
+
+          items.forEach((item) => {
+            const card = item.querySelector('.cdi-timeline-card');
+            if (!card) return;
+
+            const rect = card.getBoundingClientRect();
+            const cardTop = rect.top + window.scrollY;
+            const cardBottom = rect.bottom + window.scrollY;
+
+            const shift = cardTop <= lastBottom + minGap
+              ? (lastBottom + minGap) - cardTop
+              : 0;
+
+            item.style.setProperty('--card-shift', `${shift}px`);
+            item.style.setProperty('--connector-vertical', `${shift}px`);
+
+            lastBottom = Math.max(lastBottom, cardBottom + shift);
+          });
+        };
+
         const getHighestVisibleIndex = () => {
           let highest = -1;
           items.forEach((item, index) => {
@@ -1247,6 +1322,7 @@
       );
 
     alignDotsToYearScale();
+    preventOverlap();
     refreshLineMetrics();
     createDecadeLabels();
     createYearTicks();
@@ -1283,13 +1359,11 @@
         updateLineProgress();
       };
 
-        const preventOverlap = () => {};
-
-        window.addEventListener('scroll', handleScroll, { passive: true });
-        window.addEventListener('resize', () => {
-          alignDotsToYearScale();
-          preventOverlap();
-          refreshLineMetrics();
+      window.addEventListener('scroll', handleScroll, { passive: true });
+      window.addEventListener('resize', () => {
+        alignDotsToYearScale();
+        preventOverlap();
+        refreshLineMetrics();
           createDecadeLabels();
           createYearTicks();
           calculateProgressHeights();
