@@ -304,13 +304,15 @@
     --decade-radius: 10px;
     --year-tick-width: 10px;
     --year-tick-height: 1px;
-    --mobile-spine-offset: 16px;
-    --mobile-decade-offset: calc(var(--mobile-spine-offset) - 48px);
+    --mobile-spine-offset: 22px;
+    --mobile-decade-offset: calc(var(--mobile-spine-offset) - 12px);
     --mobile-item-padding: 3.25rem;
     --mobile-timeline-gap: 0.4rem;
     --mobile-card-left-padding: 1.35rem;
     --mobile-connector-length: calc(var(--mobile-item-padding) + var(--mobile-timeline-gap));
-    --mobile-spine-align-shift: -1px;
+    --mobile-spine-align-shift: 0px;
+
+    padding: 0 1.25rem;
 
     --spine-color: #d9e5f0;
     --progress-color: #0065a4;
@@ -388,10 +390,10 @@
 
   .cdi-timeline-item::after {
     display: block;
-    left: var(--mobile-spine-offset);
+    left: calc(var(--mobile-spine-offset) + (var(--spine-width) / 2));
     right: auto;
     width: var(--mobile-connector-length);
-    transform: translate(calc(-50% + var(--mobile-spine-align-shift)), -50%);
+    transform: translateY(-50%);
     --connector-start-clip-start: 0%;
     --connector-start-clip-end: 100%;
   }
@@ -734,7 +736,7 @@
   }
 
   .cdi-timeline-decade {
-    left: calc(var(--mobile-spine-offset) - 10px);
+    left: var(--mobile-decade-offset);
     right: auto;
     transform: translate(-100%, -50%);
     text-align: right;
@@ -742,15 +744,15 @@
 
   .cdi-timeline-item::after {
     display: block;
-    left: var(--mobile-spine-offset);
+    left: calc(var(--mobile-spine-offset) + (var(--spine-width) / 2));
     right: auto;
     width: var(--mobile-connector-length);
-    transform: translate(calc(-50% + var(--mobile-spine-align-shift)), -50%);
+    transform: translateY(-50%);
   }
 
   .cdi-timeline-item:nth-child(odd)::after,
   .cdi-timeline-item:nth-child(even)::after {
-    left: var(--mobile-spine-offset);
+    left: calc(var(--mobile-spine-offset) + (var(--spine-width) / 2));
     right: auto;
     --connector-start-clip-start: 0%;
     --connector-start-clip-end: 100%;
