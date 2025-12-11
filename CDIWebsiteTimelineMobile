@@ -248,6 +248,7 @@
   --mobile-card-left-padding: 1.1rem;
   --mobile-connector-length: 0px;
   --mobile-spine-align-shift: 0px;
+  --connector-vertical-offset: 0px;
 
   /* Colors */
   --spine-color: #d9e5f0;
@@ -311,6 +312,7 @@
     --mobile-card-left-padding: 1.35rem;
     --mobile-connector-length: calc(var(--mobile-item-padding) + var(--mobile-timeline-gap));
     --mobile-spine-align-shift: 0px;
+    --connector-vertical-offset: 0px;
 
     padding: 0 1.25rem;
 
@@ -594,7 +596,29 @@
   position: absolute;
   top: var(--dot-offset);
   width: var(--connector-length);
-  border-top: var(--connector-stroke-width) dashed var(--connector-color);
+  height: calc(var(--connector-vertical-offset) + (2 * var(--connector-stroke-width)));
+  background:
+    repeating-linear-gradient(
+      to right,
+      var(--connector-color),
+      var(--connector-color) var(--connector-stroke-width),
+      transparent var(--connector-stroke-width),
+      transparent calc(var(--connector-stroke-width) * 2)
+    ) 0 0 / 100% var(--connector-stroke-width) no-repeat,
+    repeating-linear-gradient(
+      to bottom,
+      var(--connector-color),
+      var(--connector-color) var(--connector-stroke-width),
+      transparent var(--connector-stroke-width),
+      transparent calc(var(--connector-stroke-width) * 2)
+    ) 0 var(--connector-stroke-width) / var(--connector-stroke-width) var(--connector-vertical-offset) no-repeat,
+    repeating-linear-gradient(
+      to right,
+      var(--connector-color),
+      var(--connector-color) var(--connector-stroke-width),
+      transparent var(--connector-stroke-width),
+      transparent calc(var(--connector-stroke-width) * 2)
+    ) 0 calc(var(--connector-vertical-offset) + var(--connector-stroke-width)) / 100% var(--connector-stroke-width) no-repeat;
   transform: translateY(-50%);
   z-index: 0;
   opacity: 0;
@@ -617,12 +641,15 @@
 
 .cdi-timeline-item:nth-child(odd)::after {
   right: 0;
+  transform: translateY(-50%) scaleX(-1);
+  transform-origin: top right;
   --connector-start-clip-start: 100%;
   --connector-start-clip-end: 0%;
 }
 
 .cdi-timeline-item:nth-child(even)::after {
   left: 0;
+  transform-origin: top left;
   --connector-start-clip-start: 0%;
   --connector-start-clip-end: 100%;
 }
@@ -754,6 +781,8 @@
   .cdi-timeline-item:nth-child(even)::after {
     left: calc(var(--mobile-spine-offset) + (var(--spine-width) / 2));
     right: auto;
+    transform: translateY(-50%);
+    transform-origin: top left;
     --connector-start-clip-start: 0%;
     --connector-start-clip-end: 100%;
   }
@@ -986,7 +1015,8 @@
 
         const state = window.matchMedia('(max-width: 768px)').matches ? mobileState : baseState;
 
-        let items = Array.from(timeline.querySelectorAll('.cdi-timeline-item'));
+    let items = Array.from(timeline.querySelectorAll('.cdi-timeline-item'));
+    const baseMargins = [];
 
     timeline.classList.add('is-animated');
 
@@ -1030,20 +1060,22 @@
         timeline.style.setProperty('--future-gap', `${state.FUTURE_GAP}px`);
         timeline.style.minHeight = `${state.totalLineLength}px`;
 
-      let previousYear = yearValues[0] ?? 0;
-      items.forEach((item, index) => {
-        if (index === 0) {
-          item.style.marginTop = '0';
-          return;
-        }
+    let previousYear = yearValues[0] ?? 0;
+    items.forEach((item, index) => {
+      if (index === 0) {
+        baseMargins[index] = 0;
+        item.style.marginTop = '0';
+        return;
+      }
 
-        const thisYear = yearValues[index] ?? previousYear;
-        const gap = Math.max(state.MIN_GAP, thisYear - previousYear);
-        const spacing = gap * state.YEAR_PIXEL_STEP;
+      const thisYear = yearValues[index] ?? previousYear;
+      const gap = Math.max(state.MIN_GAP, thisYear - previousYear);
+      const spacing = gap * state.YEAR_PIXEL_STEP;
 
-        item.style.marginTop = `${spacing}px`;
-        previousYear = thisYear;
-      });
+      baseMargins[index] = spacing;
+      item.style.marginTop = `${spacing}px`;
+      previousYear = thisYear;
+    });
 
         const getDotBaseOffset = (item) => {
           const baseFont = parseFloat(getComputedStyle(document.documentElement).fontSize) || 16;
@@ -1051,15 +1083,38 @@
           return item.offsetTop + dotOffset;
         };
 
-        const alignDotsToYearScale = () => {
-          items.forEach((item, idx) => {
-            const desiredOffset = desiredDotOffsets[idx] ?? 0;
-            const currentOffset = getDotBaseOffset(item);
-            const adjustment = desiredOffset - currentOffset;
-            const currentMargin = parseFloat(getComputedStyle(item).marginTop) || 0;
-            item.style.marginTop = `${currentMargin + adjustment}px`;
-          });
-        };
+  const alignDotsToYearScale = () => {
+    items.forEach((item, idx) => {
+      const desiredOffset = desiredDotOffsets[idx] ?? 0;
+      const currentOffset = getDotBaseOffset(item);
+      const adjustment = desiredOffset - currentOffset;
+      const baseMargin = baseMargins[idx] ?? 0;
+      item.style.marginTop = `${baseMargin + adjustment}px`;
+    });
+  };
+
+  const preventOverlap = () => {
+    let lastCardBottom = 0;
+    const minGap = (parseFloat(getComputedStyle(document.documentElement).fontSize) || 16) * 0.5;
+
+    items.forEach((item) => {
+      const card = item.querySelector('.cdi-timeline-card');
+      if (!card) return;
+
+      const currentTop = item.offsetTop;
+      const cardHeight = card.offsetHeight;
+      const desiredTop = Math.max(currentTop, lastCardBottom + minGap);
+      const additionalOffset = Math.max(0, desiredTop - currentTop);
+
+      if (additionalOffset > 0) {
+        const currentMargin = parseFloat(getComputedStyle(item).marginTop) || 0;
+        item.style.marginTop = `${currentMargin + additionalOffset}px`;
+      }
+
+      item.style.setProperty('--connector-vertical-offset', `${additionalOffset}px`);
+      lastCardBottom = desiredTop + cardHeight;
+    });
+  };
 
         const createDecadeLabels = () => {
           const yearOffsets = yearValues
@@ -1246,11 +1301,12 @@
         { threshold: state.VISIBILITY_RATIO, rootMargin: state.ROOT_MARGIN }
       );
 
-    alignDotsToYearScale();
-    refreshLineMetrics();
-    createDecadeLabels();
-    createYearTicks();
-    calculateProgressHeights();
+alignDotsToYearScale();
+preventOverlap();
+refreshLineMetrics();
+createDecadeLabels();
+createYearTicks();
+calculateProgressHeights();
 
       const initialVisibleItems = getOnScreenItems().sort((a, b) => a.offsetTop - b.offsetTop);
 
@@ -1283,11 +1339,9 @@
         updateLineProgress();
       };
 
-        const preventOverlap = () => {};
-
-        window.addEventListener('scroll', handleScroll, { passive: true });
-        window.addEventListener('resize', () => {
-          alignDotsToYearScale();
+      window.addEventListener('scroll', handleScroll, { passive: true });
+      window.addEventListener('resize', () => {
+        alignDotsToYearScale();
           preventOverlap();
           refreshLineMetrics();
           createDecadeLabels();
