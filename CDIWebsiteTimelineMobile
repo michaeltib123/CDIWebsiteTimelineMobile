@@ -509,6 +509,7 @@
   width: 50%;
   padding-bottom: var(--item-spacing);
   box-sizing: border-box;
+  opacity: 0;
   transition: opacity 0.35s var(--timeline-ease);
   --connector-start-clip-start: 0%;
   --connector-start-clip-end: 100%;
@@ -545,6 +546,7 @@
   background: var(--dot-color);
   border: var(--dot-border-width) solid var(--dot-border-color);
   box-shadow: 0 0 0 var(--dot-ring) var(--dot-color);
+  opacity: 0;
   transform: translate(-50%, -50%);
   z-index: 3;
 }
@@ -578,15 +580,21 @@
   border-top: var(--connector-stroke-width) dashed var(--connector-color);
   transform: translateY(-50%);
   z-index: 0;
+  opacity: 0;
   clip-path: inset(0 0 0 0);
   transition: clip-path var(--connector-duration) var(--timeline-ease) calc(var(--dot-delay) + var(--connector-delay));
 }
 
 .cdi-timeline.is-animated .cdi-timeline-item::after {
+  opacity: 0;
   clip-path: inset(0 var(--connector-start-clip-end) 0 var(--connector-start-clip-start));
+  transition:
+    opacity var(--connector-duration) var(--timeline-ease) calc(var(--dot-delay) + var(--connector-delay)),
+    clip-path var(--connector-duration) var(--timeline-ease) calc(var(--dot-delay) + var(--connector-delay));
 }
 
 .cdi-timeline.is-animated .cdi-timeline-item.is-visible::after {
+  opacity: 1;
   clip-path: inset(0 0 0 0);
 }
 
@@ -614,6 +622,7 @@
   text-align: left;
   position: relative;
   z-index: 2;
+  opacity: 0;
   transition: box-shadow 0.2s var(--timeline-ease), transform 0.2s var(--timeline-ease);
 }
 
