@@ -503,13 +503,6 @@
 }
 
 /* Individual items */
-.cdi-timeline-item,
-.cdi-timeline-item::before,
-.cdi-timeline-item::after,
-.cdi-timeline-card {
-  opacity: 0;
-}
-
 .cdi-timeline-item {
   position: relative;
   z-index: 1;
@@ -521,7 +514,11 @@
   --connector-start-clip-end: 100%;
 }
 
-.cdi-timeline-item.is-visible {
+.cdi-timeline.is-animated .cdi-timeline-item {
+  opacity: 0;
+}
+
+.cdi-timeline.is-animated .cdi-timeline-item.is-visible {
   opacity: 1;
 }
 
@@ -558,7 +555,7 @@
   transition: opacity var(--dot-appear-duration) var(--timeline-ease) var(--dot-delay), transform var(--dot-appear-duration) var(--timeline-ease) var(--dot-delay);
 }
 
-.cdi-timeline-item.is-visible::before {
+.cdi-timeline.is-animated .cdi-timeline-item.is-visible::before {
   opacity: 1;
   transform: translate(-50%, -50%) scale(1);
 }
@@ -589,9 +586,8 @@
   clip-path: inset(0 var(--connector-start-clip-end) 0 var(--connector-start-clip-start));
 }
 
-.cdi-timeline-item.is-visible::after {
+.cdi-timeline.is-animated .cdi-timeline-item.is-visible::after {
   clip-path: inset(0 0 0 0);
-  opacity: 1;
 }
 
 .cdi-timeline-item:nth-child(odd)::after {
@@ -630,7 +626,7 @@
     transform 0.2s var(--timeline-ease);
 }
 
-.cdi-timeline-item.is-visible .cdi-timeline-card {
+.cdi-timeline.is-animated .cdi-timeline-item.is-visible .cdi-timeline-card {
   opacity: 1;
 }
 
@@ -927,7 +923,22 @@
 
         // Mobile variable declaration section
         const mobileState = {
-          ...baseState,
+          progressBar: timeline.querySelector('.cdi-timeline-progress'),
+          YEAR_PIXEL_STEP: 30,
+          SPINE_TAIL_LENGTH: 40,
+          FUTURE_SEGMENT_LENGTH: 140,
+          FUTURE_GAP: 10,
+          MIN_GAP: 1,
+          INITIAL_REVEAL_DELAY: 160,
+          DOT_REM_OFFSET: 0.75,
+          VISIBILITY_RATIO: 0.05,
+          ROOT_MARGIN: '200px 0px -10% 0px',
+          LAST_ITEM_OVERSCROLL: 40,
+          spineLength: 0,
+          totalLineLength: 0,
+          itemProgressHeights: [],
+          maxProgress: 0,
+          maxReachedIndex: -1,
         };
 
         const state = window.matchMedia('(max-width: 768px)').matches ? mobileState : baseState;
