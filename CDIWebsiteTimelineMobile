@@ -503,6 +503,13 @@
 }
 
 /* Individual items */
+.cdi-timeline-item,
+.cdi-timeline-item::before,
+.cdi-timeline-item::after,
+.cdi-timeline-card {
+  opacity: 0;
+}
+
 .cdi-timeline-item {
   position: relative;
   z-index: 1;
@@ -514,11 +521,7 @@
   --connector-start-clip-end: 100%;
 }
 
-.cdi-timeline.is-animated .cdi-timeline-item {
-  opacity: 0;
-}
-
-.cdi-timeline.is-animated .cdi-timeline-item.is-visible {
+.cdi-timeline-item.is-visible {
   opacity: 1;
 }
 
@@ -555,7 +558,7 @@
   transition: opacity var(--dot-appear-duration) var(--timeline-ease) var(--dot-delay), transform var(--dot-appear-duration) var(--timeline-ease) var(--dot-delay);
 }
 
-.cdi-timeline.is-animated .cdi-timeline-item.is-visible::before {
+.cdi-timeline-item.is-visible::before {
   opacity: 1;
   transform: translate(-50%, -50%) scale(1);
 }
@@ -586,8 +589,9 @@
   clip-path: inset(0 var(--connector-start-clip-end) 0 var(--connector-start-clip-start));
 }
 
-.cdi-timeline.is-animated .cdi-timeline-item.is-visible::after {
+.cdi-timeline-item.is-visible::after {
   clip-path: inset(0 0 0 0);
+  opacity: 1;
 }
 
 .cdi-timeline-item:nth-child(odd)::after {
@@ -626,7 +630,7 @@
     transform 0.2s var(--timeline-ease);
 }
 
-.cdi-timeline.is-animated .cdi-timeline-item.is-visible .cdi-timeline-card {
+.cdi-timeline-item.is-visible .cdi-timeline-card {
   opacity: 1;
 }
 
