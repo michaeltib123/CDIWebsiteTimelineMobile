@@ -277,6 +277,7 @@
 /* Small screen: stack items on one side */
 @media (max-width: 768px) {
   .cdi-timeline-wrapper {
+    margin: 0;
     --spine-width: 4px;
     --spine-length: 0px;
     --future-length: 120px;
@@ -300,9 +301,10 @@
     --decade-radius: 10px;
     --year-tick-width: 10px;
     --year-tick-height: 1px;
-    --mobile-spine-offset: 16px;
-    --mobile-decade-offset: calc(var(--mobile-spine-offset) - 48px);
-    --mobile-item-padding: 3.25rem;
+    --mobile-label-width: 4.5rem;
+    --mobile-spine-offset: calc(var(--mobile-label-width) + 12px);
+    --mobile-decade-offset: var(--mobile-label-width);
+    --mobile-item-padding: calc(var(--mobile-spine-offset) + 1.5rem);
 
     --spine-color: #d9e5f0;
     --progress-color: #0065a4;
