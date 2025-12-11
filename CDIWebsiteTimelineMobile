@@ -379,12 +379,6 @@
     text-align: left;
   }
 
-  .cdi-timeline-item {
-    --connector-elbow: 16px;
-    --connector-dash: 8px;
-    --connector-gap: 6px;
-  }
-
   .cdi-timeline-item::before {
     transform: translate(calc(-50% + var(--mobile-spine-align-shift)), -50%);
   }
@@ -399,36 +393,9 @@
     left: calc(var(--mobile-spine-offset) + (var(--spine-width) / 2));
     right: auto;
     width: var(--mobile-connector-length);
-    height: calc(var(--connector-stroke-width) + var(--connector-vertical, 0px));
     transform: translateY(-50%);
     --connector-start-clip-start: 0%;
     --connector-start-clip-end: 100%;
-    border-top: 0;
-    background-image:
-      repeating-linear-gradient(
-        to right,
-        var(--connector-color) 0 var(--connector-dash),
-        transparent var(--connector-dash) calc(var(--connector-dash) + var(--connector-gap))
-      ),
-      repeating-linear-gradient(
-        to bottom,
-        var(--connector-color) 0 var(--connector-dash),
-        transparent var(--connector-dash) calc(var(--connector-dash) + var(--connector-gap))
-      ),
-      repeating-linear-gradient(
-        to right,
-        var(--connector-color) 0 var(--connector-dash),
-        transparent var(--connector-dash) calc(var(--connector-dash) + var(--connector-gap))
-      );
-    background-repeat: repeat-x, repeat-y, repeat-x;
-    background-size:
-      var(--connector-elbow) var(--connector-stroke-width),
-      var(--connector-stroke-width) var(--connector-vertical),
-      calc(var(--mobile-connector-length) - var(--connector-elbow)) var(--connector-stroke-width);
-    background-position:
-      left top,
-      calc(var(--connector-elbow) - (var(--connector-stroke-width) / 2)) top,
-      var(--connector-elbow) calc(var(--connector-vertical));
   }
 
   .cdi-timeline-card {
@@ -563,8 +530,6 @@
   transition: opacity 0.35s var(--timeline-ease);
   --connector-start-clip-start: 0%;
   --connector-start-clip-end: 100%;
-  --card-shift: 0px;
-  --connector-vertical: 0px;
 }
 
 .cdi-timeline.is-animated .cdi-timeline-item {
@@ -676,7 +641,6 @@
   z-index: 2;
   opacity: 0;
   transition: box-shadow 0.2s var(--timeline-ease), transform 0.2s var(--timeline-ease);
-  transform: translateY(var(--card-shift, 0px));
 }
 
 .cdi-timeline.is-animated .cdi-timeline-card {
@@ -694,7 +658,7 @@
 
 .cdi-timeline-card:hover {
   box-shadow: var(--card-shadow-hover);
-  transform: translateY(var(--card-shift, 0px)) scale(1.02);
+  transform: scale(1.02);
 }
 
 .cdi-timeline-item:nth-child(odd) .cdi-timeline-card {
@@ -1197,40 +1161,6 @@
           });
         };
 
-        const preventOverlap = () => {
-          const isMobile = window.matchMedia('(max-width: 768px)').matches;
-
-          items.forEach((item) => {
-            item.style.setProperty('--card-shift', '0px');
-            item.style.setProperty('--connector-vertical', '0px');
-          });
-
-          if (!isMobile) {
-            return;
-          }
-
-          const MIN_GAP = 20;
-          let lastBottom = -Infinity;
-
-          items.forEach((item) => {
-            const card = item.querySelector('.cdi-timeline-card');
-            if (!card) return;
-
-            const rect = card.getBoundingClientRect();
-            const currentTop = rect.top + window.scrollY;
-            const currentBottom = rect.bottom + window.scrollY;
-
-            if (currentTop <= lastBottom + MIN_GAP) {
-              const shift = lastBottom + MIN_GAP - currentTop;
-              item.style.setProperty('--card-shift', `${shift}px`);
-              item.style.setProperty('--connector-vertical', `${shift}px`);
-              lastBottom = currentBottom + shift;
-            } else {
-              lastBottom = currentBottom;
-            }
-          });
-        };
-
         const getHighestVisibleIndex = () => {
           let highest = -1;
           items.forEach((item, index) => {
@@ -1321,7 +1251,6 @@
     createDecadeLabels();
     createYearTicks();
     calculateProgressHeights();
-    preventOverlap();
 
       const initialVisibleItems = getOnScreenItems().sort((a, b) => a.offsetTop - b.offsetTop);
 
@@ -1353,6 +1282,8 @@
         revealIfInViewport();
         updateLineProgress();
       };
+
+        const preventOverlap = () => {};
 
         window.addEventListener('scroll', handleScroll, { passive: true });
         window.addEventListener('resize', () => {
