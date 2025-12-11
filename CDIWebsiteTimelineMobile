@@ -901,23 +901,34 @@
         const timeline = document.querySelector('.cdi-timeline');
         if (!timeline) return;
 
+        // Main variable declaration section
+        const baseState = {
+          progressBar: timeline.querySelector('.cdi-timeline-progress'),
+          YEAR_PIXEL_STEP: 30,
+          SPINE_TAIL_LENGTH: 40,
+          FUTURE_SEGMENT_LENGTH: 140,
+          FUTURE_GAP: 10,
+          MIN_GAP: 1,
+          INITIAL_REVEAL_DELAY: 160,
+          DOT_REM_OFFSET: 0.75,
+          VISIBILITY_RATIO: 0.05,
+          ROOT_MARGIN: '200px 0px -10% 0px',
+          LAST_ITEM_OVERSCROLL: 40,
+          spineLength: 0,
+          totalLineLength: 0,
+          itemProgressHeights: [],
+          maxProgress: 0,
+          maxReachedIndex: -1,
+        };
+
+        // Mobile variable declaration section
+        const mobileState = {
+          ...baseState,
+        };
+
+        const state = window.matchMedia('(max-width: 768px)').matches ? mobileState : baseState;
+
         let items = Array.from(timeline.querySelectorAll('.cdi-timeline-item'));
-        const progressBar = timeline.querySelector('.cdi-timeline-progress');
-          const YEAR_PIXEL_STEP = 30;
-          const SPINE_TAIL_LENGTH = 40;
-          const FUTURE_SEGMENT_LENGTH = 140;
-          const FUTURE_GAP = 10;
-            const MIN_GAP = 1;
-            const INITIAL_REVEAL_DELAY = 160;
-            const DOT_REM_OFFSET = 0.75;
-            const VISIBILITY_RATIO = 0.05;
-            const ROOT_MARGIN = '200px 0px -10% 0px';
-            const LAST_ITEM_OVERSCROLL = 40;
-          let spineLength = 0;
-          let totalLineLength = 0;
-          let itemProgressHeights = [];
-          let maxProgress = 0;
-          let maxReachedIndex = -1;
 
     timeline.classList.add('is-animated');
 
@@ -944,22 +955,22 @@
     if (!isChronological) {
       const fragment = document.createDocumentFragment();
       itemsWithYears.forEach(({ item }) => fragment.appendChild(item));
-      progressBar?.after(fragment);
+      state.progressBar?.after(fragment);
     }
 
     items = itemsWithYears.map(({ item }) => item);
       const yearValues = itemsWithYears.map(({ year }) => year);
       const minYearValue = Math.min(...yearValues);
       const maxYearValue = Math.max(...yearValues);
-        const desiredDotOffsets = yearValues.map((year) => (year - minYearValue) * YEAR_PIXEL_STEP);
+        const desiredDotOffsets = yearValues.map((year) => (year - minYearValue) * state.YEAR_PIXEL_STEP);
         const lastDesiredOffset = Math.max(...desiredDotOffsets, 0);
-        spineLength = lastDesiredOffset + SPINE_TAIL_LENGTH;
-        totalLineLength = spineLength + FUTURE_GAP + FUTURE_SEGMENT_LENGTH;
+        state.spineLength = lastDesiredOffset + state.SPINE_TAIL_LENGTH;
+        state.totalLineLength = state.spineLength + state.FUTURE_GAP + state.FUTURE_SEGMENT_LENGTH;
 
-        timeline.style.setProperty('--spine-length', `${spineLength}px`);
-        timeline.style.setProperty('--future-length', `${FUTURE_SEGMENT_LENGTH}px`);
-        timeline.style.setProperty('--future-gap', `${FUTURE_GAP}px`);
-        timeline.style.minHeight = `${totalLineLength}px`;
+        timeline.style.setProperty('--spine-length', `${state.spineLength}px`);
+        timeline.style.setProperty('--future-length', `${state.FUTURE_SEGMENT_LENGTH}px`);
+        timeline.style.setProperty('--future-gap', `${state.FUTURE_GAP}px`);
+        timeline.style.minHeight = `${state.totalLineLength}px`;
 
       let previousYear = yearValues[0] ?? 0;
       items.forEach((item, index) => {
@@ -969,8 +980,8 @@
         }
 
         const thisYear = yearValues[index] ?? previousYear;
-        const gap = Math.max(MIN_GAP, thisYear - previousYear);
-        const spacing = gap * YEAR_PIXEL_STEP;
+        const gap = Math.max(state.MIN_GAP, thisYear - previousYear);
+        const spacing = gap * state.YEAR_PIXEL_STEP;
 
         item.style.marginTop = `${spacing}px`;
         previousYear = thisYear;
@@ -978,7 +989,7 @@
 
         const getDotBaseOffset = (item) => {
           const baseFont = parseFloat(getComputedStyle(document.documentElement).fontSize) || 16;
-          const dotOffset = DOT_REM_OFFSET * baseFont; // matches 0.75rem used in CSS
+          const dotOffset = state.DOT_REM_OFFSET * baseFont; // matches 0.75rem used in CSS
           return item.offsetTop + dotOffset;
         };
 
@@ -1059,7 +1070,7 @@
           layer.className = 'cdi-timeline-year-tick-layer';
 
           for (let year = minYearValue; year <= maxYearValue; year += 1) {
-            const offset = (year - minYearValue) * YEAR_PIXEL_STEP;
+            const offset = (year - minYearValue) * state.YEAR_PIXEL_STEP;
             const tick = document.createElement('div');
             tick.className = 'cdi-timeline-year-tick';
             tick.style.top = `${offset}px`;
@@ -1075,20 +1086,20 @@
             0
           );
 
-          spineLength = Math.max(spineLength, Math.ceil(maxDotOffset));
-          totalLineLength = spineLength + FUTURE_GAP + FUTURE_SEGMENT_LENGTH;
+          state.spineLength = Math.max(state.spineLength, Math.ceil(maxDotOffset));
+          state.totalLineLength = state.spineLength + state.FUTURE_GAP + state.FUTURE_SEGMENT_LENGTH;
 
-          timeline.style.setProperty('--spine-length', `${spineLength}px`);
-          timeline.style.setProperty('--future-length', `${FUTURE_SEGMENT_LENGTH}px`);
-          timeline.style.setProperty('--future-gap', `${FUTURE_GAP}px`);
-          timeline.style.minHeight = `${totalLineLength}px`;
+          timeline.style.setProperty('--spine-length', `${state.spineLength}px`);
+          timeline.style.setProperty('--future-length', `${state.FUTURE_SEGMENT_LENGTH}px`);
+          timeline.style.setProperty('--future-gap', `${state.FUTURE_GAP}px`);
+          timeline.style.minHeight = `${state.totalLineLength}px`;
         };
 
         const calculateProgressHeights = () => {
           const remSize = parseFloat(getComputedStyle(document.documentElement).fontSize) || 16;
-          const dotOffset = DOT_REM_OFFSET * remSize;
-          itemProgressHeights = items.map((item) => {
-            return Math.min(totalLineLength, item.offsetTop + dotOffset);
+          const dotOffset = state.DOT_REM_OFFSET * remSize;
+          state.itemProgressHeights = items.map((item) => {
+            return Math.min(state.totalLineLength, item.offsetTop + dotOffset);
           });
         };
 
@@ -1103,31 +1114,33 @@
         };
 
         const updateLineProgress = () => {
-          if (!progressBar) return;
+          if (!state.progressBar) return;
 
           const highestVisibleIndex = getHighestVisibleIndex();
-          if (highestVisibleIndex > maxReachedIndex) {
-            maxReachedIndex = highestVisibleIndex;
+          if (highestVisibleIndex > state.maxReachedIndex) {
+            state.maxReachedIndex = highestVisibleIndex;
           }
 
-          const targetHeight = itemProgressHeights[maxReachedIndex] ?? 0;
-          const hasReachedLastItem = maxReachedIndex >= items.length - 1;
+          const targetHeight = state.itemProgressHeights[state.maxReachedIndex] ?? 0;
+          const hasReachedLastItem = state.maxReachedIndex >= items.length - 1;
 
           const timelineRect = timeline.getBoundingClientRect();
           const viewportHeight = window.innerHeight || document.documentElement.clientHeight;
           const viewportProgress = Math.max(0, viewportHeight - timelineRect.top);
-          const hasClearedLastItem = viewportProgress >= targetHeight + LAST_ITEM_OVERSCROLL;
+          const hasClearedLastItem = viewportProgress >= targetHeight + state.LAST_ITEM_OVERSCROLL;
           const desiredProgress = hasReachedLastItem
             ? (hasClearedLastItem ? Math.max(targetHeight, viewportProgress) : targetHeight)
             : targetHeight;
 
-        maxProgress = Math.min(totalLineLength, Math.max(maxProgress, desiredProgress));
+        state.maxProgress = Math.min(state.totalLineLength, Math.max(state.maxProgress, desiredProgress));
 
-        const clampedLineProgress = Math.min(maxProgress, spineLength);
-        const overflowProgress = hasReachedLastItem ? Math.max(0, maxProgress - spineLength - FUTURE_GAP) : 0;
-        const futureProgress = Math.min(FUTURE_SEGMENT_LENGTH, overflowProgress);
+        const clampedLineProgress = Math.min(state.maxProgress, state.spineLength);
+        const overflowProgress = hasReachedLastItem
+          ? Math.max(0, state.maxProgress - state.spineLength - state.FUTURE_GAP)
+          : 0;
+        const futureProgress = Math.min(state.FUTURE_SEGMENT_LENGTH, overflowProgress);
 
-        progressBar.style.height = `${clampedLineProgress}px`;
+        state.progressBar.style.height = `${clampedLineProgress}px`;
         timeline.style.setProperty('--line-progress', `${clampedLineProgress}px`);
         timeline.style.setProperty('--future-progress', `${futureProgress}px`);
       };
@@ -1172,7 +1185,7 @@
             }
           });
         },
-        { threshold: VISIBILITY_RATIO, rootMargin: ROOT_MARGIN }
+        { threshold: state.VISIBILITY_RATIO, rootMargin: state.ROOT_MARGIN }
       );
 
     alignDotsToYearScale();
@@ -1195,7 +1208,7 @@
 
       itemsToReveal[index].classList.add('is-visible');
       updateLineProgress();
-      setTimeout(() => revealSequentially(itemsToReveal, index + 1), INITIAL_REVEAL_DELAY);
+      setTimeout(() => revealSequentially(itemsToReveal, index + 1), state.INITIAL_REVEAL_DELAY);
     };
 
       if (initialVisibleItems.length) {
@@ -1222,7 +1235,7 @@
           createDecadeLabels();
           createYearTicks();
           calculateProgressHeights();
-          maxProgress = Math.min(maxProgress, totalLineLength);
+          state.maxProgress = Math.min(state.maxProgress, state.totalLineLength);
         updateLineProgress();
       });
     };
