@@ -401,6 +401,14 @@
       bottom right;
   }
 
+  .cdi-timeline-item.has-connector-drop::after,
+  .cdi-timeline-item.has-connector-drop:nth-child(odd)::after {
+    background-position:
+      top left,
+      top center,
+      bottom right;
+  }
+
   .cdi-timeline-item:nth-child(odd)::after,
   .cdi-timeline-item:nth-child(even)::after {
     background-position:
