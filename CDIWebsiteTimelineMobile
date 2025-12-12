@@ -608,11 +608,25 @@
   position: absolute;
   top: calc(var(--dot-offset) - (var(--connector-stroke-width) / 2));
   width: var(--connector-length);
-  height: calc(var(--connector-vertical) + var(--connector-stroke-width));
+  height: var(--connector-stroke-width);
   z-index: 0;
   opacity: 0;
   clip-path: inset(0 0 0 0);
   transition: clip-path var(--connector-duration) var(--timeline-ease) calc(var(--dot-delay) + var(--connector-delay));
+  background-repeat: repeat-x;
+  background-size: 100% var(--connector-stroke-width);
+  background-image: repeating-linear-gradient(
+    to right,
+    var(--connector-color),
+    var(--connector-color) var(--connector-dash),
+    transparent var(--connector-dash),
+    transparent calc(var(--connector-dash) * 2)
+  );
+  background-position: center;
+}
+
+.cdi-timeline-item.has-connector-drop::after {
+  height: calc(var(--connector-vertical) + var(--connector-stroke-width));
   background-repeat: no-repeat;
   background-size:
     50% var(--connector-stroke-width),
@@ -663,16 +677,19 @@
   right: 0;
   --connector-start-clip-start: 100%;
   --connector-start-clip-end: 0%;
-  background-position:
-    top right,
-    top center,
-    bottom left;
 }
 
 .cdi-timeline-item:nth-child(even)::after {
   left: 0;
   --connector-start-clip-start: 0%;
   --connector-start-clip-end: 100%;
+}
+
+.cdi-timeline-item.has-connector-drop:nth-child(odd)::after {
+  background-position:
+    top right,
+    top center,
+    bottom left;
 }
 
 /* Card */
@@ -1355,6 +1372,7 @@
           items.forEach((item) => {
             item.style.setProperty('--card-shift', '0px');
             item.style.setProperty('--connector-vertical', '0px');
+            item.classList.remove('has-connector-drop');
           });
 
           items.forEach((item, index) => {
@@ -1374,6 +1392,7 @@
 
             item.style.setProperty('--card-shift', `${shift}px`);
             item.style.setProperty('--connector-vertical', `${shift}px`);
+            item.classList.toggle('has-connector-drop', shift > 0);
 
             if (isMobileLayout) {
               previousBottomAll = cardBottom + shift;
