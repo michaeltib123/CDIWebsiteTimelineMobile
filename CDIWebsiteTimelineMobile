@@ -693,12 +693,14 @@
   --connector-start-clip-end: 100%;
 }
 
-.cdi-timeline-item.has-connector-drop:nth-child(odd)::after {
-  background-position:
-    top right,
-    top center,
-    bottom left;
-}
+  @media (min-width: 769px) {
+    .cdi-timeline-item.has-connector-drop:nth-child(odd)::after {
+      background-position:
+        top right,
+        top center,
+        bottom left;
+    }
+  }
 
 /* Card */
 .cdi-timeline-card {
