@@ -397,16 +397,16 @@
     --connector-start-clip-end: 100%;
     background-position:
       top left,
-      top right,
-      bottom left;
+      top center,
+      bottom right;
   }
 
   .cdi-timeline-item:nth-child(odd)::after,
   .cdi-timeline-item:nth-child(even)::after {
     background-position:
       top left,
-      top right,
-      bottom left;
+      top center,
+      bottom right;
   }
 
   .cdi-timeline-card {
@@ -796,7 +796,10 @@
     left: calc(var(--mobile-spine-offset) + (var(--spine-width) / 2));
     right: auto;
     width: var(--mobile-connector-length);
-    transform: translateY(-50%);
+    background-position:
+      top left,
+      top center,
+      bottom right;
   }
 
   .cdi-timeline-item:nth-child(odd)::after,
@@ -805,6 +808,10 @@
     right: auto;
     --connector-start-clip-start: 0%;
     --connector-start-clip-end: 100%;
+    background-position:
+      top left,
+      top center,
+      bottom right;
   }
 
   .cdi-timeline-item,
@@ -1336,7 +1343,8 @@
       };
 
         function preventOverlap() {
-          const timelineRect = timeline.getBoundingClientRect();
+          const remSize = parseFloat(getComputedStyle(document.documentElement).fontSize) || 16;
+          const dotOffset = state.DOT_REM_OFFSET * remSize;
           const isMobileLayout = window.matchMedia('(max-width: 768px)').matches;
           const previousBottomBySide = {
             left: -Infinity,
@@ -1356,9 +1364,8 @@
             const isLeftSide = index % 2 === 0;
             const sideKey = isLeftSide ? 'left' : 'right';
 
-            const cardRect = card.getBoundingClientRect();
-            const cardTop = cardRect.top - timelineRect.top;
-            const cardBottom = cardRect.bottom - timelineRect.top;
+            const cardTop = item.offsetTop + dotOffset;
+            const cardBottom = cardTop + card.offsetHeight;
 
             const targetTop = isMobileLayout
               ? previousBottomAll + state.CARD_MIN_GAP
@@ -1377,16 +1384,29 @@
         }
 
         window.addEventListener('scroll', handleScroll, { passive: true });
-        window.addEventListener('resize', () => {
-          alignDotsToYearScale();
-          preventOverlap();
-          refreshLineMetrics();
-          createDecadeLabels();
-          createYearTicks();
-          calculateProgressHeights();
-          state.maxProgress = Math.min(state.maxProgress, state.totalLineLength);
-        updateLineProgress();
-      });
+        let resizeTimeout;
+        let lastResizeIsMobile = window.matchMedia('(max-width: 768px)').matches;
+        const handleResize = () => {
+          clearTimeout(resizeTimeout);
+          resizeTimeout = setTimeout(() => {
+            const isMobileLayout = window.matchMedia('(max-width: 768px)').matches;
+            const layoutChanged = isMobileLayout !== lastResizeIsMobile;
+            lastResizeIsMobile = isMobileLayout;
+
+            alignDotsToYearScale();
+            if (layoutChanged) {
+              preventOverlap();
+            }
+            refreshLineMetrics();
+            createDecadeLabels();
+            createYearTicks();
+            calculateProgressHeights();
+            state.maxProgress = Math.min(state.maxProgress, state.totalLineLength);
+            updateLineProgress();
+          }, 120);
+        };
+
+        window.addEventListener('resize', handleResize);
     };
 
     if (document.readyState === 'loading') {
