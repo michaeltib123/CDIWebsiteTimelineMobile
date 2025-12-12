@@ -1017,7 +1017,7 @@
         // Mobile variable declaration section
         const mobileState = {
           progressBar: timeline.querySelector('.cdi-timeline-progress'),
-          YEAR_PIXEL_STEP: 30,
+          YEAR_PIXEL_STEP: 55,
           SPINE_TAIL_LENGTH: 40,
           FUTURE_SEGMENT_LENGTH: 140,
           FUTURE_GAP: 10,
