@@ -1337,12 +1337,10 @@
 
         function preventOverlap() {
           const timelineRect = timeline.getBoundingClientRect();
-          const isMobileLayout = window.matchMedia('(max-width: 768px)').matches;
           const previousBottomBySide = {
             left: -Infinity,
             right: -Infinity,
           };
-          let previousBottomUnified = -Infinity;
 
           items.forEach((item) => {
             item.style.setProperty('--card-shift', '0px');
@@ -1353,23 +1351,13 @@
             const card = item.querySelector('.cdi-timeline-card');
             if (!card) return;
 
+            const isLeftSide = index % 2 === 0;
+            const sideKey = isLeftSide ? 'left' : 'right';
+
             const cardRect = card.getBoundingClientRect();
             const cardTop = cardRect.top - timelineRect.top;
             const cardBottom = cardRect.bottom - timelineRect.top;
 
-            if (isMobileLayout) {
-              const targetTop = previousBottomUnified + state.CARD_MIN_GAP;
-              const shift = Math.max(0, targetTop - cardTop);
-
-              item.style.setProperty('--card-shift', `${shift}px`);
-              item.style.setProperty('--connector-vertical', `${shift}px`);
-
-              previousBottomUnified = cardBottom + shift;
-              return;
-            }
-
-            const isLeftSide = index % 2 === 0;
-            const sideKey = isLeftSide ? 'left' : 'right';
             const targetTop = previousBottomBySide[sideKey] + state.CARD_MIN_GAP;
             const shift = Math.max(0, targetTop - cardTop);
 
