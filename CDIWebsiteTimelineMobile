@@ -1337,10 +1337,12 @@
 
         function preventOverlap() {
           const timelineRect = timeline.getBoundingClientRect();
+          const isMobileLayout = window.matchMedia('(max-width: 768px)').matches;
           const previousBottomBySide = {
             left: -Infinity,
             right: -Infinity,
           };
+          let previousBottomAll = -Infinity;
 
           items.forEach((item) => {
             item.style.setProperty('--card-shift', '0px');
@@ -1358,13 +1360,19 @@
             const cardTop = cardRect.top - timelineRect.top;
             const cardBottom = cardRect.bottom - timelineRect.top;
 
-            const targetTop = previousBottomBySide[sideKey] + state.CARD_MIN_GAP;
+            const targetTop = isMobileLayout
+              ? previousBottomAll + state.CARD_MIN_GAP
+              : previousBottomBySide[sideKey] + state.CARD_MIN_GAP;
             const shift = Math.max(0, targetTop - cardTop);
 
             item.style.setProperty('--card-shift', `${shift}px`);
             item.style.setProperty('--connector-vertical', `${shift}px`);
 
-            previousBottomBySide[sideKey] = cardBottom + shift;
+            if (isMobileLayout) {
+              previousBottomAll = cardBottom + shift;
+            } else {
+              previousBottomBySide[sideKey] = cardBottom + shift;
+            }
           });
         }
 
